@@ -2,7 +2,7 @@ const express = require('express');
 require('dotenv').config();
 const path = require('path')
 const app = express();
-/* const routes = require('./routes'); */
+const routes = require('./routes');
 
 const cors = require('cors');
 const cookieParser = require('cookie-parser')
@@ -36,8 +36,8 @@ connectDB()
         app.use(express.json({ limit: "50mb" }));
         app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
-        /* // routes
-        app.use('/', routes); */
+        // routes
+        app.use('/', routes);
 
 
         const port = process.env.PORT || 5000;
