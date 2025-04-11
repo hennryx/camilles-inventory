@@ -1,14 +1,14 @@
 import { useEffect } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 
 import './App.css'
 import useAuthStore from './services/stores/authStore';
+import NotFound from './pages/notFound';
 import HeroPage from './pages/home';
 import Views from './pages/views';
 
 function App() {
     const { auth, token, validateToken } = useAuthStore();
-    const location = useLocation();
 
     useEffect(() => {
         if (!auth?._id && token) {
@@ -16,14 +16,18 @@ function App() {
         }
     }, [auth?._id, token]);
 
+    const heroPaths = [
+        '/',
+        '/about-us'
+    ];
+
+    const urlPath = location.pathname;
+
     return (
         <>
             <Routes>
-                {/* HeroPage will handle its own internal routing */}
-                <Route path="/*" element={<HeroPage />} />
-                
-                {/* Protected dashboard routes */}
-                <Route path="/dashboard/*" element={<Views />} />
+                {heroPaths.includes(urlPath) ? <Route path='/*' element={<HeroPage />} /> : <Route path='/*' element={<Views />} />}
+                <Route path='*' element={<NotFound />} />
             </Routes>
         </>
     )

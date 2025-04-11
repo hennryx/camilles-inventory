@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Route, Routes as Switch } from 'react-router-dom';
+import { Route, Routes as Switch, useLocation } from 'react-router-dom';
 import NotFound from './notFound';
 import ROLES from './views/roles';
 import Loading from '../components/loadingPage';
@@ -11,6 +11,7 @@ const Routes = () => {
     const { role } = useAuthStore();
     const [loading, setLoading] = useState(true);
     const routes = ROLES[role] || [];
+    const location = useLocation();
 
     useEffect(() => {
         setLoading(!role);
@@ -19,17 +20,19 @@ const Routes = () => {
     if (loading) return <Loading />;
 
     return (
-        <Switch>
+        <Switch location={location} key={location.pathname}>
             {role && routes.map(({ path, element, children, acceptProps }, index) => {
                 if (children) {
                     return children.map((child, cIndex) => (
                         <Route
-                            key={`child-${index}-${cIndex}`}
+                            key={`route-${index}-${cIndex}`}
                             path={child.path}
                             element={
-                                <ProtectedRoute>
-                                    <RouteWrapper Component={child.element} acceptProps={child.acceptProps} />
-                                </ProtectedRoute>
+                                <ProtectedRoute
+                                    role={role}
+                                    element={child.element || <NotFound />}
+                                    acceptProps={child.acceptProps}
+                                />
                             }
                         />
                     ));
@@ -40,9 +43,11 @@ const Routes = () => {
                         key={`route-${index}`}
                         path={path}
                         element={
-                            <ProtectedRoute>
-                                <RouteWrapper Component={element} acceptProps={acceptProps} />
-                            </ProtectedRoute>
+                            <ProtectedRoute
+                                role={role}
+                                element={element || <NotFound />}
+                                acceptProps={acceptProps}
+                            />
                         }
                     />
                 );

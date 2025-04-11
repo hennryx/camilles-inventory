@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 import { HiOutlineX } from 'react-icons/hi';
 
 import { toast } from 'react-toastify';
+import useAuthStore from '../../services/stores/authStore';
+import { useNavigate } from 'react-router-dom';
 
 const Login = ({ isOpen, handleClose, handleToggle }) => {
     const [viewPassword, setViewPassword] = useState(false);
@@ -11,6 +13,9 @@ const Login = ({ isOpen, handleClose, handleToggle }) => {
         email: "",
         password: ""
     });
+    const { login, message, isSuccess, isLoading, reset } = useAuthStore();
+    const navigate = useNavigate();
+
 
     const handleChange = (key, value) => {
         setUserData((prev) => ({
@@ -19,7 +24,7 @@ const Login = ({ isOpen, handleClose, handleToggle }) => {
         }))
     }
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         const { email, password } = userData;
@@ -34,9 +39,20 @@ const Login = ({ isOpen, handleClose, handleToggle }) => {
         }
 
         console.log("loging in...");
-
-
+        await login(userData)
     }
+
+    useEffect(() => {
+        if (isSuccess) {
+            toast.success("Login successful!");
+            handleClose();
+            reset()
+            navigate('/dashboard');
+        } else if(message){
+            toast.error(message || "Something went wrong.");
+            reset()
+        }
+    }, [isSuccess, message])
 
     const handleLogout = (e) => {
         e.preventDefault();
@@ -61,11 +77,11 @@ const Login = ({ isOpen, handleClose, handleToggle }) => {
         <>
             {isOpen && (
                 <div className="modal modal-open">
-                    <div className="modal-box">
+                    <div className="modal-box bg-white text-black">
                         <div className="flex flex-row justify-between">
                             <h3 className="font-bold text-lg">Login</h3>
                             <button
-                                className="btn btn-ghost"
+                                className="btn btn-ghost bg-white text-black"
                                 type="button"
                                 onClick={handleClose}
                             >
@@ -75,7 +91,7 @@ const Login = ({ isOpen, handleClose, handleToggle }) => {
                         <div className="modal-action">
                             <form id="loginForm" method="POST" className="flex flex-col gap-2 w-full" onKeyDown={handleKeyDown}>
                                 <label htmlFor="">Email</label>
-                                <div className="input input-bordered flex items-center gap-2">
+                                <div className="input input-bordered flex items-center gap-2 w-full bg-white border-black">
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         viewBox="0 0 16 16"
@@ -98,7 +114,7 @@ const Login = ({ isOpen, handleClose, handleToggle }) => {
                                 </div>
 
                                 <label htmlFor="">Password</label>
-                                <div className="input input-bordered flex items-center gap-2">
+                                <div className="input w-full input-bordered flex items-center gap-2 bg-white border-black">
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         viewBox="0 0 16 16"
@@ -139,21 +155,9 @@ const Login = ({ isOpen, handleClose, handleToggle }) => {
                                 {/* {errorMsg && (
                                     <span className='text-red-600'>{errorMsg}</span>
                                 )} */}
-                                <label className="signup-link w-full text-center">
-                                    Don't have an account? <span> </span>
+                                <div className="flex flex-col gap-2 pt-2 w-full">
                                     <button
-                                        className="text-sm font-semibold leading-6 text-blue-700 cursor-pointer"
-                                        onClick={() => {
-                                            handleClose()
-                                            handleToggle("register", true)
-                                        }}
-                                    >
-                                        Sign up
-                                    </button>
-                                </label>
-                                <div className="flex flex-col gap-2 p-2">
-                                    <button
-                                        className="btn w-full justify-center rounded-md bg-blue-300 px-3 py-1.5 text-sm font-semibold leading-6 text-blue-800 shadow-sm hover:bg-blue-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-650"
+                                        className="btn w-max border-0 justify-center rounded-md bg-blue-300 px-3 py-1.5 text-sm font-semibold leading-6 text-blue-800 shadow-sm hover:bg-blue-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-650"
                                         onClick={(e) => handleSubmit(e)}
                                     >
                                         Login
@@ -167,6 +171,9 @@ const Login = ({ isOpen, handleClose, handleToggle }) => {
                                         </button>
                                     )} */}
                                 </div>
+                                <label className="signup-link w-full text-start">
+                                    Forget Password?
+                                </label>
                             </form>
                         </div>
                     </div>

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Route, Routes as Switch } from "react-router-dom";
 
 import Login from './login';
+
 import Home from "./pages/home";
-import AboutUs from "./pages/about-us"; // You'll need to create this component
-import Header from './header';
+import Header from "./header";
 import Footer from '../../components/footer';
+import AboutUs from "../home/pages/about-us";
 import NotFound from '../notFound';
 
 const HeroPage = () => {
@@ -14,9 +15,7 @@ const HeroPage = () => {
         register: false,
         home: true,
     });
-    
-    const location = useLocation();
-    
+
     const handleToggle = (name, val = false) => {
         setToggle({
             login: false,
@@ -28,19 +27,21 @@ const HeroPage = () => {
 
     return (
         <main className="min-h-screen flex flex-col">
-            <div className="bg-white flex-1">
+            <div className="flex-1" style={{ backgroundColor: '#F0F4FB' }} >
                 <Header handleToggle={handleToggle} />
                 <div className='my-16 w-full h-full'>
-                    <Routes>
-                        <Route index element={<Home handleToggle={handleToggle} />} />
-                        <Route path="about-us" element={<AboutUs />} />
-                        <Route path="*" element={<NotFound />} />
-                    </Routes>
+                    <Switch>
+                        <Route
+                            path="/"
+                            element={<Home handleToggle={handleToggle} />}
+                        />
+                        <Route path='/about-us' element={AboutUs}></Route>
+                    </Switch>
                 </div>
 
                 <Login isOpen={toggle.login} handleClose={() => handleToggle('login', false)} handleToggle={handleToggle} />
             </div>
-            <Footer className='bg-gray-200 shadow-md border-t-2' />
+            <Footer className='bg-gray-200 shadow-md border-t-2 text-black' />
         </main>
     );
 };

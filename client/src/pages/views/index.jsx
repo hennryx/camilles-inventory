@@ -1,19 +1,14 @@
 import React from 'react';
-import Routes from '../Routes';
 import useAuthStore from '../../services/stores/authStore';
+import Routes from '../Routes';
 
 const Views = () => {
     const { role } = useAuthStore();
-
+    console.log(role);
+    
     return (
         <>
-            {role === 'CUSTOMER' ? (
-                <div className="customer-view">
-                    <p>Header</p>
-                    <Routes />
-                    <p>Footer</p>
-                </div>
-            ) : role !== null ? (
+            {role !== null ? (
                 <div className="admin-view">
                     <p>Sidebar</p>
                     <p>Header</p>

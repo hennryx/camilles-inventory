@@ -6,6 +6,8 @@ const validateToken = async(url, token) => {
         const { data } = await axios.get(url, {
           headers: { Authorization: `${TOKENHEADER} ${token}` },
         });
+        console.log("dara", data);
+        
         return data;
       } catch (error) {
         const errorMsg = error.response ? error.response.data.message : error.message;

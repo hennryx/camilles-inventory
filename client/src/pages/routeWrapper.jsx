@@ -5,7 +5,6 @@ const RouteWrapper = ({ Component, acceptProps = [] }) => {
   const location = useLocation();
   const routeState = location.state || {};
   
-  // Filter only accepted props
   const validProps = acceptProps.reduce((acc, key) => {
     if (routeState[key] !== undefined) {
       acc[key] = routeState[key];

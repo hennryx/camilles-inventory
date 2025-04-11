@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { HiX, HiMenu } from 'react-icons/hi';
+import Logo from "../../assets/Logo.png"
 import { Dialog, DialogPanel } from '@headlessui/react'
 import { NavLink } from 'react-router-dom';
 
@@ -8,7 +9,6 @@ const Header = ({ handleToggle }) => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const navigation = [
         { name: 'Home', href: '/' },
-        { name: 'Services', href: '/services' },
         { name: 'About us', href: '/about-us' },
     ];
 
@@ -19,11 +19,11 @@ const Header = ({ handleToggle }) => {
                 <div className="flex lg:flex-1">
                     <div className="-m-1.5 p-1.5">
                         <span className="sr-only">Your Company</span>
-                        {/* <img
+                        <img
                             alt="img"
-                            src=""
+                            src={Logo}
                             className="h-16 w-auto"
-                        /> */}
+                        />
                     </div>
                 </div>
                 <div className="flex lg:hidden">
@@ -36,19 +36,18 @@ const Header = ({ handleToggle }) => {
                         <HiMenu className="h-6 w-6" />
                     </button>
                 </div>
-                <div className="hidden lg:flex lg:gap-x-12">
+                <div className="hidden lg:flex lg:gap-x-12 lg:justify-end" >
                     {navigation.map((item) => (
                         <NavLink
                             key={item.href}
                             to={item.href}
-                            className="text-base font-semibold leading-6 text-gray-900"
+                            className="text-base flex justify-center items-center font-semibold leading-6 text-gray-900 hover:bg-white p-2 rounded-md btn border btn-ghost"
                         >
                             <span className='text-black' style={{ textWrap: "nowrap" }}>{item.name}</span>
                         </NavLink>
                     ))}
-                </div>
-                <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-                    <button className="btn border p-2 rounded-md btn-ghost text-base font-semibold leading-6 text-gray-900 " onClick={() => handleToggle("login", true)}>
+
+                    <button className="btn border btn-ghost text-base font-semibold leading-6 text-gray-900 p-2 rounded-md hover:bg-white" onClick={() => handleToggle("login", true)}>
                         Login
                     </button>
                 </div>
@@ -89,10 +88,13 @@ const Header = ({ handleToggle }) => {
                             </div>
 
                             <div className="py-6 flex flex-col ">
-                                <button className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50 text-left" onClick={() => handleToggle("register", true)}>
-                                    Sign up
-                                </button>
-                                <button className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50 text-left" onClick={() => handleToggle("login", true)}>
+                                <button
+                                    className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50 text-left"
+                                    onClick={() => {
+                                        handleToggle("login", true);
+                                        setMobileMenuOpen(false)
+                                    }}
+                                >
                                     Login
                                 </button>
                             </div>
