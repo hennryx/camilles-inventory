@@ -32,6 +32,7 @@ const Sidebar = ({ role, token }) => {
     useEffect(() => {
         const path = location.pathname;
         const index = menuItems.findIndex(item => item.path === path);
+        
         toggleMenu(index)
 
     }, [location.pathname])
@@ -51,7 +52,7 @@ const Sidebar = ({ role, token }) => {
     }
 
     return (
-        <div className={`flex flex-col ${isCollapsed ? 'w-16' : 'w-64'} h-auto bg-[#fbd0de94] transition-all duration-300 relative`}>
+        <div className={`flex flex-col ${isCollapsed ? 'w-16' : 'w-64'} h-auto bg-white transition-all duration-300 relative`}>
             <button
                 onClick={() => setIsCollapsed(!isCollapsed)}
                 className="p-2 m-4 text-black focus:outline-none transition flex justify-items-center justify-between items-center font-bold z-[1]"
