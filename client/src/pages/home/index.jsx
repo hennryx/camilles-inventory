@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Route, Routes as Switch } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 
 import Login from './login';
-
-import Home from "./pages/home"
+import Home from "./pages/home";
+import AboutUs from "./pages/about-us"; // You'll need to create this component
 import Header from './header';
 import Footer from '../../components/footer';
+import NotFound from '../notFound';
 
 const HeroPage = () => {
     const [toggle, setToggle] = useState({
@@ -13,7 +14,9 @@ const HeroPage = () => {
         register: false,
         home: true,
     });
-
+    
+    const location = useLocation();
+    
     const handleToggle = (name, val = false) => {
         setToggle({
             login: false,
@@ -28,14 +31,11 @@ const HeroPage = () => {
             <div className="bg-white flex-1">
                 <Header handleToggle={handleToggle} />
                 <div className='my-16 w-full h-full'>
-                    <Switch>
-                        <Route
-                            path="/"
-                            element={<Home handleToggle={handleToggle} />}
-                        />
-                        {/* <Route path='/foods' Component={StaticMenu}></Route> */}
-
-                    </Switch>
+                    <Routes>
+                        <Route index element={<Home handleToggle={handleToggle} />} />
+                        <Route path="about-us" element={<AboutUs />} />
+                        <Route path="*" element={<NotFound />} />
+                    </Routes>
                 </div>
 
                 <Login isOpen={toggle.login} handleClose={() => handleToggle('login', false)} handleToggle={handleToggle} />

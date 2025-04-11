@@ -8,7 +8,7 @@ const Header = ({ handleToggle }) => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const navigation = [
         { name: 'Home', href: '/' },
-        { name: 'Menu', href: '/foods' },
+        { name: 'Services', href: '/services' },
         { name: 'About us', href: '/about-us' },
     ];
 
@@ -19,11 +19,11 @@ const Header = ({ handleToggle }) => {
                 <div className="flex lg:flex-1">
                     <div className="-m-1.5 p-1.5">
                         <span className="sr-only">Your Company</span>
-                        <img
+                        {/* <img
                             alt="img"
                             src=""
                             className="h-16 w-auto"
-                        />
+                        /> */}
                     </div>
                 </div>
                 <div className="flex lg:hidden">
@@ -48,7 +48,7 @@ const Header = ({ handleToggle }) => {
                     ))}
                 </div>
                 <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-                    <button className="btn border btn-ghost text-base font-semibold leading-6 text-gray-900 " onClick={() => handleToggle("login", true)}>
+                    <button className="btn border p-2 rounded-md btn-ghost text-base font-semibold leading-6 text-gray-900 " onClick={() => handleToggle("login", true)}>
                         Login
                     </button>
                 </div>

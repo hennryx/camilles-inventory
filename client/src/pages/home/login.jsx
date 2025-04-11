@@ -23,34 +23,31 @@ const Login = ({ isOpen, handleClose, handleToggle }) => {
         e.preventDefault();
 
         const { email, password } = userData;
-        if(email === "") {
+        if (email === "") {
             console.log("email cannot be empty!");
             return
         }
 
-        if(password === "") {
+        if (password === "") {
             console.log("password cannot be empty!");
             return
         }
 
         console.log("loging in...");
-        
+
 
     }
 
     const handleLogout = (e) => {
         e.preventDefault();
-        dispatch(LOGOUT(token))
-        .then((response) => {
-            toast.success(response.payload)
-            dispatch(RESET())
-            handleClose()
-            window.location.reload()
-        })
-        .catch((err) => {
+        console.log("Logging out");
+        toast.success(response.payload)
+        handleClose()
+        window.location.reload()
+
+        /* 
             const errorMessage = err?.message || message || "Logout failed";
-            toast.error(errorMessage);
-        });
+            toast.error(errorMessage); */
     }
 
 
@@ -68,8 +65,8 @@ const Login = ({ isOpen, handleClose, handleToggle }) => {
                         <div className="flex flex-row justify-between">
                             <h3 className="font-bold text-lg">Login</h3>
                             <button
-                                className="btn btn-ghost" 
-                                type="button" 
+                                className="btn btn-ghost"
+                                type="button"
                                 onClick={handleClose}
                             >
                                 <HiOutlineX />
@@ -89,11 +86,11 @@ const Login = ({ isOpen, handleClose, handleToggle }) => {
                                         <path
                                             d="M15 6.954 8.978 9.86a2.25 2.25 0 0 1-1.956 0L1 6.954V11.5A1.5 1.5 0 0 0 2.5 13h11a1.5 1.5 0 0 0 1.5-1.5V6.954Z" />
                                     </svg>
-                                    
-                                    <input 
-                                        type="email" 
-                                        className="grow" 
-                                        placeholder="Juan@mail.com" 
+
+                                    <input
+                                        type="email"
+                                        className="grow"
+                                        placeholder="Juan@mail.com"
                                         name='email'
                                         value={userData.email}
                                         onChange={(e) => handleChange(e.target.name, e.target.value)}
@@ -112,9 +109,9 @@ const Login = ({ isOpen, handleClose, handleToggle }) => {
                                             d="M14 6a4 4 0 0 1-4.899 3.899l-1.955 1.955a.5.5 0 0 1-.353.146H5v1.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-2.293a.5.5 0 0 1 .146-.353l3.955-3.955A4 4 0 1 1 14 6Zm-4-2a.75.75 0 0 0 0 1.5.5.5 0 0 1 .5.5.75.75 0 0 0 1.5 0 2 2 0 0 0-2-2Z"
                                             clipRule="evenodd" />
                                     </svg>
-                                    <input 
-                                        type={viewPassword ? "text" : "password"} 
-                                        className="grow" 
+                                    <input
+                                        type={viewPassword ? "text" : "password"}
+                                        className="grow"
                                         placeholder={viewPassword ? "Password" : "******"}
                                         name='password'
                                         value={userData.password}
@@ -122,7 +119,7 @@ const Login = ({ isOpen, handleClose, handleToggle }) => {
                                         autoComplete="off"
                                     />
                                     {viewPassword ? (
-                                        <button 
+                                        <button
                                             type="button"
                                             className='h-full'
                                             onClick={() => setViewPassword(!viewPassword)}
@@ -130,7 +127,7 @@ const Login = ({ isOpen, handleClose, handleToggle }) => {
                                             <FaRegEye />
                                         </button>
                                     ) : (
-                                        <button 
+                                        <button
                                             type="button"
                                             className='h-full'
                                             onClick={() => setViewPassword(!viewPassword)}
@@ -144,8 +141,8 @@ const Login = ({ isOpen, handleClose, handleToggle }) => {
                                 )} */}
                                 <label className="signup-link w-full text-center">
                                     Don't have an account? <span> </span>
-                                    <button 
-                                        className="text-sm font-semibold leading-6 text-blue-700 cursor-pointer" 
+                                    <button
+                                        className="text-sm font-semibold leading-6 text-blue-700 cursor-pointer"
                                         onClick={() => {
                                             handleClose()
                                             handleToggle("register", true)
@@ -155,7 +152,7 @@ const Login = ({ isOpen, handleClose, handleToggle }) => {
                                     </button>
                                 </label>
                                 <div className="flex flex-col gap-2 p-2">
-                                    <button 
+                                    <button
                                         className="btn w-full justify-center rounded-md bg-blue-300 px-3 py-1.5 text-sm font-semibold leading-6 text-blue-800 shadow-sm hover:bg-blue-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-650"
                                         onClick={(e) => handleSubmit(e)}
                                     >

@@ -3,7 +3,6 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 
 import './App.css'
 import useAuthStore from './services/stores/authStore';
-import NotFound from './pages/notFound';
 import HeroPage from './pages/home';
 import Views from './pages/views';
 
@@ -17,18 +16,14 @@ function App() {
         }
     }, [auth?._id, token]);
 
-    const heroPaths = [
-        '/',
-    ];
-    
-    const isHeroPath = heroPaths.includes(location.pathname);
-
-
     return (
         <>
             <Routes>
-                <Route path="*" element={<NotFound />} />
-                <Route path="/" element={isHeroPath ? <HeroPage /> : <Views />} />
+                {/* HeroPage will handle its own internal routing */}
+                <Route path="/*" element={<HeroPage />} />
+                
+                {/* Protected dashboard routes */}
+                <Route path="/dashboard/*" element={<Views />} />
             </Routes>
         </>
     )

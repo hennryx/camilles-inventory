@@ -5,7 +5,7 @@ const Footer = ({ className=""}) => {
         <footer className="footer">
             <div className={`flex flex-col sm:flex-row w-full p-8 gap-4 sm:gap-8 ${className} ${className.includes('bg-') ? className : 'bg-white'}`}>
                 <div className="flex-1 flex flex-col gap-2">
-                    <img alt="" src="" className="h-14 w-16" />
+                    {/* <img alt="" src="" className="h-14 w-16" /> */}
                     <p className='text-base'>A good place for good moments. 
                         Prince Nazareth Hotel offers 
                         for Rent! Book/Inquire now! </p>

@@ -20,7 +20,7 @@ const Home = ({ handleToggle=()=> {} }) => {
 
             <div className="text-center  py-32 sm:py-48 lg:py-56">
                 <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
-                    Prince Nazareth Hotel
+                    Camilles Store
                 </h1>
                 <p className="mt-6 text-lg leading-8 text-gray-600">
                     Anim aute id magna aliqua ad ad non deserunt sunt. Qui irure qui lorem cupidatat commodo. Elit sunt amet
@@ -35,16 +35,6 @@ const Home = ({ handleToggle=()=> {} }) => {
                     </div>
                 </div>
             </div>
-
-            <div
-                className="w-full overflow-x-scroll md:overflow-x-hidden px-4 pb-4 bg-whiteCard"
-            >
-                <h1 className='text-5xl font-bold text-start'>Rooms</h1>
-                <p>Explore our room categories: Whether you're looking for the ultimate luxury in our VIP rooms, a premium experience in our suite rooms, a comfortable stay in our family rooms, or a cozy retreat in our regular accommodations, we have the perfect room to suit your needs and make your stay unforgettable.</p>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-10 my-6">
-                </div>
-            </div>
-
         </div>
     )
 }

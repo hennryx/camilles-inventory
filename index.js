@@ -11,7 +11,7 @@ const connectDB = require('./config/db')
 connectDB()
     .then(() => {
         const corsConfig = {
-            origin: 'http://localhost:3000',
+            origin: 'http://localhost:5173',
             methods: ["GET", "POST", "PUT", "DELETE"],
             credentials: true,
             allowedHeaders: [
