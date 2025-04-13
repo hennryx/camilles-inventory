@@ -58,14 +58,12 @@ exports.login = async (req, res) => {
 
 exports.register = async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const data = req.body;
+        
+        console.log(data);
         
         // Create user
-        const user = await Users.create({
-            name,
-            email,
-            password
-        });
+        const user = await Users.create(data);
 
         // Create token
         const token = generateToken(res, user._id);

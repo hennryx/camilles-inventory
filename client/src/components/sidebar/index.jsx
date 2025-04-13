@@ -60,16 +60,14 @@ const Sidebar = ({ role, token }) => {
     }
 
     useEffect(() => {
-        if (isSuccess) {
-            console.log("true");
-
+        if (isSuccess && message === "User logged out") {
             navigate("/");
             window.location.reload();
 
             setTimeout(() => {
                 hardReset()
             }, 100)
-        } else if (message) {
+        } else if (message === "Logout failed") {
             toast.error(message || "Something went wrong.");
             reset()
         }
@@ -178,7 +176,7 @@ const Sidebar = ({ role, token }) => {
                     onClick={(e)=> setIsAccOpen(prev => !prev)}
                 >
                     <VscAccount className='text-white' size={22} />
-                    {!isCollapsed && <span className='text-white transition-opacity duration-500'>{auth.name}</span>}
+                    {!isCollapsed && <span className='text-white transition-opacity duration-500'>{auth.firstname}</span>}
                 </div>
                 {isAccOpen && (
                     <>

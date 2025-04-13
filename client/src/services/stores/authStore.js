@@ -43,12 +43,12 @@ const useAuthStore = create((set, get) => ({
             set({
                 isSuccess: res.success,
                 isLoading: false,
-                message: 'Sign up successful',
+                message: 'signup: Sign up successful',
             });
         } catch (error) {
             set({
                 isLoading: false,
-                message: error?.response?.data?.message || 'signup failed',
+                message: "eSignup: " + error?.response?.data?.message || 'eSignup: signup failed',
                 isSuccess: false,
             });
         }
