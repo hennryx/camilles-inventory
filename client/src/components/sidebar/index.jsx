@@ -13,13 +13,16 @@ import './sidebar.css'
 
 const Sidebar = ({ role, token }) => {
     const menuItems = ROLES[role] || [];
-    const { logout, isSuccess, message, reset, hardReset } = useAuthStore();
+    const { logout, isSuccess, message, reset, hardReset, auth } = useAuthStore();
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [expandedMenu, setExpandedMenu] = useState({});
     const [activeIndex, setActiveIndex] = useState(0);
     const [isAccOpen, setIsAccOpen] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
+
+    console.log(auth);
+    
 
 
     useEffect(() => {
@@ -179,7 +182,7 @@ const Sidebar = ({ role, token }) => {
                     onClick={(e)=> setIsAccOpen(prev => !prev)}
                 >
                     <VscAccount className='text-white' size={22} />
-                    {!isCollapsed && <span className='text-white transition-opacity duration-500'>Account</span>}
+                    {!isCollapsed && <span className='text-white transition-opacity duration-500'>{auth.name}</span>}
                 </div>
                 {isAccOpen && (
                     <>
