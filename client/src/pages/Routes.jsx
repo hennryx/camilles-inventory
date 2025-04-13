@@ -18,6 +18,7 @@ const Routes = () => {
     }, [role]);
 
     if (loading) return <Loading />;
+    if(!role && loading) return <NotFound/>
 
     return (
         <Switch location={location} key={location.pathname}>

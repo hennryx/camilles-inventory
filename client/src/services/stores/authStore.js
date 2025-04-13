@@ -62,8 +62,6 @@ const useAuthStore = create((set, get) => ({
         set({ isLoading: true });
         try {
             const res = await axiosTools.validateToken('auth/validateToken', token);
-            console.log(res);
-            
             const { data } = res;
 
             set({
@@ -80,15 +78,11 @@ const useAuthStore = create((set, get) => ({
     logout: async () => {
         const token = get().token;
         try {
-            await axiosTools.logOut('auth/logout', token);
+            const message = await axiosTools.logOut('auth/logout', token);
             localStorage.removeItem('token');
             set({
-                auth: {},
-                token: '',
-                role: null,
-                email: '',
-                isSuccess: false,
-                message: '',
+                isSuccess: true,
+                message: message,
             });
         } catch (error) {
             set({ message: 'Logout failed' });
@@ -97,9 +91,18 @@ const useAuthStore = create((set, get) => ({
 
     reset: () => {
         set({
+            email: '',
+            message: '',
+            isSuccess: false,
+        });
+    },
+
+    hardReset: () => {
+        set({
             auth: {},
-            token: '',
+            token: null,
             role: null,
+            email: '',
             email: '',
             message: '',
             isSuccess: false,

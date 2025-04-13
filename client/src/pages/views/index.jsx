@@ -8,19 +8,17 @@ const Views = () => {
     console.log(role);
 
     return (
-        <>
-            {role !== null ? (
-                <div className="flex h-screen w-screen overflow-hidden">
-                    <Sidebar role={role}/>
-                    <main className={`flex-1 flex flex-col bg-[#E4E9F7] overflow-hidden`}>
-                        <div className="flex-1 overflow-y-auto p-4 text-black">
-                            <Routes />
-                        </div>
-                        <p className='text-black'>Footer</p>
-                    </main>
+        <div className="flex h-screen w-screen overflow-hidden">
+            {role && <Sidebar role={role} /> }
+            <main className={`flex-1 flex flex-col bg-[#E4E9F7] overflow-hidden`}>
+                <div className="flex-1 overflow-y-auto p-4 text-black">
+                    <Routes />
                 </div>
-            ) : null}
-        </>
+                {role && (
+                    <p className='text-black'>Footer</p>
+                )}
+            </main>
+        </div>
     );
 };
 
