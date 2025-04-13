@@ -14,9 +14,9 @@ const Dashboard = () => {
                 </div>
 
                 <div className='flex gap-5'>
-                    <Card title={"Total Products"} count={122} logo={BsBoxes}/>
-                    <Card title={"Recently Added Products"} count={100} logo={FaCheckDouble} logoColor='text-green-400' />
-                    <Card title={"Out of Stock of Products"} count={12} logo={FaBoxOpen} logoColor='text-yellow-400' />
+                    <Card title={"Total products"} count={122} logo={BsBoxes}/>
+                    <Card title={"Recently added products"} count={100} logo={FaCheckDouble} logoColor='text-green-400' />
+                    <Card title={"Out of stock products"} count={12} logo={FaBoxOpen} logoColor='text-yellow-400' />
                 </div>
                 
                 <div>
