@@ -5,7 +5,6 @@ import Sidebar from '../../components/sidebar';
 
 const Views = () => {
     const { role } = useAuthStore();
-    console.log(role);
 
     return (
         <div className="flex h-screen w-screen overflow-hidden">

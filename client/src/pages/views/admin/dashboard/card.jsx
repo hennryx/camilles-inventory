@@ -1,6 +1,6 @@
 import React from 'react'
 
-const Card = ({ title, count, logo: Logo, logoColor = "black"}) => {
+const Card = ({ title, count, logo: Logo, logoColor = "black" }) => {
     return (
         <div className="flex-1 bg-white shadow-md rounded-2xl">
             <div className='p-4'>

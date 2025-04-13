@@ -21,10 +21,6 @@ const Sidebar = ({ role, token }) => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    console.log(auth);
-    
-
-
     useEffect(() => {
         const handleResize = () => {
             if (window.innerWidth < 1199) {
