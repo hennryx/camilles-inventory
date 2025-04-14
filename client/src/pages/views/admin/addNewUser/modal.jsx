@@ -3,10 +3,12 @@ import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/re
 import { BsEye, BsEyeSlash } from "react-icons/bs";
 import Swal from 'sweetalert2'
 import useUsersStore from '../../../../services/stores/users/users';
+import useAuthStore from '../../../../services/stores/authStore';
 
-const Modal = ({ isOpen, setIsOpen, setUserData, userData, setUsersData }) => {
+const Modal = ({ isOpen, setIsOpen, setUserData, userData, isUpdate, setIsUpdate }) => {
     const [errorMsg, setErrorMsg] = useState("");
-    const { signup, message, isSuccess, user, reset } = useUsersStore();
+    const { signup, message, isSuccess, user, reset, update } = useUsersStore();
+    const { token } = useAuthStore()
     const [viewPass, setViewPass] = useState(false);
 
     const handleUserData = (key, value) => {
@@ -26,14 +28,31 @@ const Modal = ({ isOpen, setIsOpen, setUserData, userData, setUsersData }) => {
             return;
         }
 
+        if(isUpdate) {
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You won't be able to revert this!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, Submit it!"
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    await update(userData, token)
+                }
+            });
+            return;
+        }
+
         Swal.fire({
             title: "Are you sure?",
-            text: "You won't be able to revert this!",
+            text: "You want to Add this!",
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#3085d6",
             cancelButtonColor: "#d33",
-            confirmButtonText: "Yes, Submit it!"
+            confirmButtonText: "Yes"
         }).then(async (result) => {
             if (result.isConfirmed) {
                 await signup(userData);
@@ -43,6 +62,7 @@ const Modal = ({ isOpen, setIsOpen, setUserData, userData, setUsersData }) => {
 
     const handleCancel = () => {
         setIsOpen(false);
+        setIsUpdate(false);
         setUserData(() => ({
             firstname: "",
             middlename: "",
@@ -52,42 +72,6 @@ const Modal = ({ isOpen, setIsOpen, setUserData, userData, setUsersData }) => {
             role: "STAFF"
         }));
     }
-
-    useEffect(() => {
-        if (isSuccess && message.startsWith("signup:")) {
-            setIsOpen(!isOpen);
-
-            setUserData(() => ({
-                firstname: "",
-                middlename: "",
-                lastname: "",
-                email: "",
-                password: "",
-                role: "STAFF"
-            }));
-
-            if (user) {
-                setUsersData((prev) => ([...prev, user]))
-            }
-
-            reset()
-            Swal.fire({
-                title: "Saved!",
-                text: "New user has been added.",
-                icon: "success"
-            });
-
-
-        } else if (message.startsWith("eSignup:")) {
-            reset()
-            const displayMessage = message.slice(20).trim();
-            Swal.fire({
-                title: "Error!",
-                text: displayMessage,
-                icon: "error"
-            });
-        }
-    }, [isSuccess, message, user])
 
     useEffect(() => {
         if(errorMsg) {
@@ -113,7 +97,7 @@ const Modal = ({ isOpen, setIsOpen, setUserData, userData, setUsersData }) => {
                             <div className="sm:flex sm:items-start">
                                 <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                                     <DialogTitle as="h3" className="text-base font-semibold text-gray-900">
-                                        Add new user
+                                        {isUpdate ? "Update user" : "Add new user"}
                                     </DialogTitle>
                                     <div className="mt-2">
                                         <div className="border-b border-gray-900/10 pb-2">
@@ -207,7 +191,7 @@ const Modal = ({ isOpen, setIsOpen, setUserData, userData, setUsersData }) => {
                                                             id="password"
                                                             name="password"
                                                             type={viewPass ? "text" : "password"}
-                                                            value={userData.password}
+                                                            value={userData?.password || ""}
                                                             onChange={(e) => handleUserData(e.target.name, e.target.value)}
                                                             autoComplete="password"
                                                             className="block w-full bg-white px-3 py-1.5 text-base text-gray-900 sm:text-sm/6 border-0 focus:outline-none"
@@ -235,9 +219,9 @@ const Modal = ({ isOpen, setIsOpen, setUserData, userData, setUsersData }) => {
                             <button
                                 type="button"
                                 onClick={(e) => handleSubmit(e)}
-                                className="inline-flex w-full justify-center rounded-md bg-blue-200 px-3 py-2 text-sm font-semibold text-blue-800 shadow-xs hover:bg-blue-300 sm:ml-3 sm:w-auto"
+                                className={`inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold ${isUpdate ? "bg-blue-200 text-blue-800 hover:bg-blue-300" : "bg-green-200 text-green-800 hover:bg-green-300" } sm:ml-3 sm:w-auto shadow-xs`}
                             >
-                                Save
+                                {isUpdate ? "Update" : "Save"}
                             </button>
 
                             <button

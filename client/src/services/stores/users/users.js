@@ -36,14 +36,58 @@ const useUsersStore = create((set, get) => ({
             set({
                 isSuccess: res.success,
                 isLoading: false,
-                message: 'signup: User created successfully!',
+                message: 'User created successfully!',
                 user: res.user
             });
             
         } catch (error) {
             set({
                 isLoading: false,
-                message: "eSignup: " + error || 'eSignup: signup failed',
+                message: error || 'eSignup: signup failed',
+                isSuccess: false,
+            });
+        }
+    },
+
+    update: async (data, token) => {
+        set({ isLoading: true, message: '', isSuccess: false });
+        try {
+            const res = await axiosTools.updateData('users/update', data, token)
+
+            console.log(res);
+            
+            set({
+                isSuccess: res.success,
+                isLoading: false,
+                message: 'User updated successfully!',
+                user: res.user
+            });
+
+        } catch (error) {
+            set({
+                isLoading: false,
+                message: error,
+                isSuccess: false,
+            });
+        }
+    },
+
+    deleteUser: async (data, token) => {
+        set({ isLoading: true, message: '', isSuccess: false});
+
+        try {
+            const res = await axiosTools.deleteData('users/delete', data, token)
+
+            set({
+                isSuccess: res.success,
+                isLoading: false,
+                message: 'User deleted successfully!',
+                user: res.user
+            });
+        } catch (error) {
+            set({
+                isLoading: false,
+                message: error,
                 isSuccess: false,
             });
         }

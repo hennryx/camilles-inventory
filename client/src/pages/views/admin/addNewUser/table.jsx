@@ -1,16 +1,38 @@
 import React, { useEffect, useState } from 'react'
 import { IoIosAdd } from "react-icons/io";
+import Swal from 'sweetalert2';
+import useUsersStore from '../../../../services/stores/users/users';
+import useAuthStore from '../../../../services/stores/authStore';
 
-const Table = ({ data, toggleAdd }) => {
+const Table = ({ data, toggleAdd, handleUpdate }) => {
+    const { deleteUser, message, isSuccess } = useUsersStore();
+    const { token } = useAuthStore()
     const [searchResult, setSearchResult] = useState("")
     const [allData, setAllData] = useState(data)
     const [searchTerm, setSearchTerm] = useState('');
-    
+
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(5);
-    
+
+    const handleDelete = (e, data) => {
+        e.preventDefault();
+
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, Delete it!"
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                await deleteUser(data, token)
+            }
+        });
+    }
     useEffect(() => {
-        if(data || searchTerm) {
+        if (data || searchTerm) {
             const term = searchTerm.toLowerCase();
 
             if (term === "") {
@@ -18,15 +40,15 @@ const Table = ({ data, toggleAdd }) => {
                 setSearchResult("");
                 return;
             }
-            
+
             const filtered = data.filter(user =>
                 user.firstName?.toLowerCase().includes(term) ||
                 user.middleName?.toLowerCase().includes(term) ||
                 user.lastName?.toLowerCase().includes(term) ||
                 user.email?.toLowerCase().includes(term)
             );
-            
-            if(filtered.length === 0 && searchTerm) {
+
+            if (filtered.length === 0 && searchTerm) {
                 setSearchResult(`No result found for "${searchTerm}"`)
             } else {
                 setSearchResult("");
@@ -109,11 +131,10 @@ const Table = ({ data, toggleAdd }) => {
                                 <button
                                     key={number}
                                     onClick={() => handlePageChange(number)}
-                                    className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
-                                        currentPage === number
-                                            ? 'bg-blue-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
-                                            : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-offset-0'
-                                    }`}
+                                    className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${currentPage === number
+                                        ? 'bg-blue-600 text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
+                                        : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-offset-0'
+                                        }`}
                                 >
                                     {number}
                                 </button>
@@ -175,7 +196,7 @@ const Table = ({ data, toggleAdd }) => {
                         <tr>
                             <td colSpan={5} className='text-center py-4 text-gray-500'>{searchResult}</td>
                         </tr>
-                    ): (
+                    ) : (
                         currentItems.map((_data, i) => (
                             <tr key={i}>
                                 <th>{indexOfFirstItem + i + 1}</th>
@@ -183,8 +204,18 @@ const Table = ({ data, toggleAdd }) => {
                                 <td>{_data.email}</td>
                                 <td>{_data.role}</td>
                                 <td className='flex flex-row justify-center items-center gap-2 p-2'>
-                                    <button className='p-2 bg-blue-200 text-blue-800 rounded-md hover:bg-blue-300'>Update</button>
-                                    <button className='p-2 bg-red-200 text-red-800 rounded-md hover:bg-red-300'>Delete</button>
+                                    <button
+                                        className='p-2 bg-blue-200 text-blue-800 rounded-md hover:bg-blue-300'
+                                        onClick={() => handleUpdate(_data)}
+                                    >
+                                        Update
+                                    </button>
+                                    <button
+                                        className='p-2 bg-red-200 text-red-800 rounded-md hover:bg-red-300'
+                                        onClick={(e) => handleDelete(e, _data)}
+                                    >
+                                        Delete
+                                    </button>
                                 </td>
                             </tr>
                         ))
