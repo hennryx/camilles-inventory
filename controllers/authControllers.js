@@ -68,10 +68,15 @@ exports.register = async (req, res) => {
         // Create token
         const token = generateToken(res, user._id);
 
+        const userData = user.toObject();
+        delete userData.password;
+
         res.status(201).json({
             success: true,
-            token
+            token,
+            user: userData
         });
+        
     } catch (err) {
         res.status(400).json({
             success: false,

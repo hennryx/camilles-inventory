@@ -36,24 +36,6 @@ const useAuthStore = create((set, get) => ({
         }
     },
 
-    signup: async (item) => {
-        set({ isLoading: true, message: '', isSuccess: false });
-        try {
-            const res = await axiosTools.register('auth/signup', { ...item });
-            set({
-                isSuccess: res.success,
-                isLoading: false,
-                message: 'signup: Sign up successful',
-            });
-        } catch (error) {
-            set({
-                isLoading: false,
-                message: "eSignup: " + error?.response?.data?.message || 'eSignup: signup failed',
-                isSuccess: false,
-            });
-        }
-    },
-
     validateToken: async () => {
         const token = get().token || localStorage.getItem('token');;
         

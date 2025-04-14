@@ -12,7 +12,7 @@ const register = async (url, data) => {
             const errorMessage = data.message
                 ? `${data.error}: ${data.message}`
                 : data.error;
-            throw new Error(errorMessage);
+            throw errorMessage;
         } else {
             throw error;
         }

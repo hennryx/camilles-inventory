@@ -7,8 +7,9 @@ import useUsersStore from '../../../../services/stores/users/users';
 const AddNewUser = () => {
     const { token } = useAuthStore();
     const { getUsers, data } = useUsersStore();
-    const [ toggleAdd, setToggleAdd ] = useState(false);
-    const [ newUser, setNewUser ] = useState({
+    const [toggleAdd, setToggleAdd] = useState(false);
+    const [ usersData, setUsersData ] = useState([])
+    const [newUser, setNewUser] = useState({
         firstname: "",
         middlename: "",
         lastname: "",
@@ -18,29 +19,32 @@ const AddNewUser = () => {
     });
 
     useEffect(() => {
-        const fetchData = async () => {
-            if (token) {
-                await getUsers(token);
-            }
-        };
-    
-        fetchData();
-    }, []);
+        if (token) {
+            getUsers(token);
+        }
+
+    }, [token]);
+
+    useEffect(() => {
+        if(data) {
+            setUsersData(data)
+        }
+    }, [data]);
 
     return (
         <>
-        <div className='container'>
-            <div className="flex flex-col gap-5 pt-4">
-                <div className=''>
-                    <h2 className='text-xl text-[#4154F1]'>Add new user</h2>
-                    <p className='text-sm text-[#989797]'>Users / {toggleAdd && "Add new user"}</p>
-                </div>
-                <div>
-                <Table data={data} toggleAdd={setToggleAdd} />
+            <div className='container'>
+                <div className="flex flex-col gap-5 pt-4">
+                    <div className=''>
+                        <h2 className='text-xl text-[#4154F1]'>Add new user</h2>
+                        <p className='text-sm text-[#989797]'>Users / {toggleAdd && "Add new user"}</p>
+                    </div>
+                    <div>
+                        <Table data={usersData} toggleAdd={setToggleAdd} />
+                    </div>
                 </div>
             </div>
-        </div>
-        <Modal isOpen={toggleAdd} setIsOpen={setToggleAdd} setUserData={setNewUser} userData={newUser} />
+            <Modal isOpen={toggleAdd} setIsOpen={setToggleAdd} setUserData={setNewUser} userData={newUser} setUsersData={setUsersData} />
         </>
     )
 }

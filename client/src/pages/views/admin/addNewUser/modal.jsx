@@ -1,11 +1,12 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
 import { BsEye, BsEyeSlash } from "react-icons/bs";
 import Swal from 'sweetalert2'
-import useAuthStore from '../../../../services/stores/authStore';
+import useUsersStore from '../../../../services/stores/users/users';
 
-const Modal = ({ isOpen, setIsOpen, setUserData, userData }) => {
-    const { signup, message, isSuccess } = useAuthStore();
+const Modal = ({ isOpen, setIsOpen, setUserData, userData, setUsersData }) => {
+    const [errorMsg, setErrorMsg] = useState("");
+    const { signup, message, isSuccess, user, reset } = useUsersStore();
     const [viewPass, setViewPass] = useState(false);
 
     const handleUserData = (key, value) => {
@@ -18,6 +19,13 @@ const Modal = ({ isOpen, setIsOpen, setUserData, userData }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        const { firstname, lastname, email, password } = userData;
+
+        if (firstname === "" || lastname === "" || email === "" || password === "") {
+            setErrorMsg("Please fill all the required fields!");
+            return;
+        }
+
         Swal.fire({
             title: "Are you sure?",
             text: "You won't be able to revert this!",
@@ -29,34 +37,65 @@ const Modal = ({ isOpen, setIsOpen, setUserData, userData }) => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 await signup(userData);
-                if (isSuccess && message.startsWith("signup:")) {
-                    setIsOpen(!isOpen);
-                    setUserData(() => ({
-                        firstname: "",
-                        middlename: "",
-                        lastname: "",
-                        email: "",
-                        password: "",
-                        role: "STAFF"
-                    }));
-
-                    Swal.fire({
-                        title: "Saved!",
-                        text: "New user has been added.",
-                        icon: "success"
-                    });
-
-                } else if(message.startsWith("eSignup:")) {
-                    Swal.fire({
-                        title: "Error!",
-                        text: message,
-                        icon: "danger"
-                    });
-                }
             }
         });
     }
 
+    const handleCancel = () => {
+        setIsOpen(false);
+        setUserData(() => ({
+            firstname: "",
+            middlename: "",
+            lastname: "",
+            email: "",
+            password: "",
+            role: "STAFF"
+        }));
+    }
+
+    useEffect(() => {
+        if (isSuccess && message.startsWith("signup:")) {
+            setIsOpen(!isOpen);
+
+            setUserData(() => ({
+                firstname: "",
+                middlename: "",
+                lastname: "",
+                email: "",
+                password: "",
+                role: "STAFF"
+            }));
+
+            if (user) {
+                setUsersData((prev) => ([...prev, user]))
+            }
+
+            reset()
+            Swal.fire({
+                title: "Saved!",
+                text: "New user has been added.",
+                icon: "success"
+            });
+
+
+        } else if (message.startsWith("eSignup:")) {
+            reset()
+            const displayMessage = message.slice(20).trim();
+            Swal.fire({
+                title: "Error!",
+                text: displayMessage,
+                icon: "error"
+            });
+        }
+    }, [isSuccess, message, user])
+
+    useEffect(() => {
+        if(errorMsg) {
+            setTimeout(() => {
+                setErrorMsg("");
+            }, 3000);
+        }
+    }, [errorMsg])
     return (
         <Dialog open={isOpen} onClose={setIsOpen} className="relative z-10">
             <DialogBackdrop
@@ -77,7 +116,7 @@ const Modal = ({ isOpen, setIsOpen, setUserData, userData }) => {
                                         Add new user
                                     </DialogTitle>
                                     <div className="mt-2">
-                                        <div className="border-b border-gray-900/10 pb-12">
+                                        <div className="border-b border-gray-900/10 pb-2">
                                             <h2 className="text-base/7 font-semibold text-gray-900">Personal Information</h2>
                                             <p className="mt-1 text-sm/6 text-gray-600">Use a real mail where you can receive mail.</p>
 
@@ -185,6 +224,9 @@ const Modal = ({ isOpen, setIsOpen, setUserData, userData }) => {
 
                                             </div>
                                         </div>
+                                        {errorMsg && (
+                                            <div className='text-red-800 bg-red-200 p-2 flex justify-center rounded-md'>{errorMsg}</div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -201,7 +243,7 @@ const Modal = ({ isOpen, setIsOpen, setUserData, userData }) => {
                             <button
                                 type="button"
                                 data-autofocus
-                                onClick={() => setIsOpen(false)}
+                                onClick={() => handleCancel()}
                                 className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-xs ring-1 ring-gray-300 ring-inset hover:bg-red-300 hover:text-red-800 sm:mt-0 sm:w-auto"
                             >
                                 Cancel

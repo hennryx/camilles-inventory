@@ -14,7 +14,7 @@ const Table = ({ data, toggleAdd }) => {
                                 <input type="search" required placeholder="Search" />
                             </label>
                             <button
-                                className='flex items-center justify-center px-4 py-3 bg-blue-200 rounded-md text-blue-800 whitespace-nowrap'
+                                className='flex items-center justify-center px-4 py-3 bg-green-200 rounded-md text-green-800 whitespace-nowrap hover:bg-green-300'
                                 onClick={() => toggleAdd((prev) => !prev)}
                             >
                                 <IoIosAdd />
@@ -29,6 +29,7 @@ const Table = ({ data, toggleAdd }) => {
                         <th>Name</th>
                         <th>Mail</th>
                         <th>Role</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody className='text-gray-500'>
@@ -38,6 +39,10 @@ const Table = ({ data, toggleAdd }) => {
                             <td>{data.firstname} {data.middlename} {data.lastname}</td>
                             <td>{data.email}</td>
                             <td>{data.role}</td>
+                            <td className='flex flex-row justify-center items-center gap-2 p-2'>
+                                <button className='p-2 bg-blue-200 text-blue-800 rounded-md hover:bg-blue-300'>Update</button>
+                                <button className='p-2 bg-red-200 text-red-800 rounded-md hover:bg-red-300'>Delete</button>
+                            </td>
                         </tr>
                     ))}
                 </tbody>
