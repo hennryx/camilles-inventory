@@ -7,7 +7,7 @@ import useAuthStore from '../../../../services/stores/authStore';
 
 const Modal = ({ isOpen, setIsOpen, setUserData, userData, isUpdate, setIsUpdate }) => {
     const [errorMsg, setErrorMsg] = useState("");
-    const { signup, message, isSuccess, user, reset, update } = useUsersStore();
+    const { signup, update } = useUsersStore();
     const { token } = useAuthStore()
     const [viewPass, setViewPass] = useState(false);
 
@@ -28,7 +28,7 @@ const Modal = ({ isOpen, setIsOpen, setUserData, userData, isUpdate, setIsUpdate
             return;
         }
 
-        if(isUpdate) {
+        if (isUpdate) {
             Swal.fire({
                 title: "Are you sure?",
                 text: "You won't be able to revert this!",
@@ -74,7 +74,7 @@ const Modal = ({ isOpen, setIsOpen, setUserData, userData, isUpdate, setIsUpdate
     }
 
     useEffect(() => {
-        if(errorMsg) {
+        if (errorMsg) {
             setTimeout(() => {
                 setErrorMsg("");
             }, 3000);
@@ -97,7 +97,7 @@ const Modal = ({ isOpen, setIsOpen, setUserData, userData, isUpdate, setIsUpdate
                             <div className="sm:flex sm:items-start">
                                 <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                                     <DialogTitle as="h3" className="text-base font-semibold text-gray-900">
-                                        {isUpdate ? "Update user" : "Add new user"}
+                                        {isUpdate ? "Update supplier" : "Add new supplier"}
                                     </DialogTitle>
                                     <div className="mt-2">
                                         <div className="border-b border-gray-900/10 pb-2">
@@ -178,34 +178,6 @@ const Modal = ({ isOpen, setIsOpen, setUserData, userData, isUpdate, setIsUpdate
                                                         />
                                                     </div>
                                                 </div>
-
-                                                <div className="sm:col-span-6">
-                                                    <label htmlFor="password" className="block text-sm/6 font-medium text-gray-900">
-                                                        <span className='required'></span>
-                                                        Password
-                                                    </label>
-
-                                                    <div className="mt-1 flex flex-row items-center rounded-md border border-gray-300 placeholder:text-gray-400 focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-indigo-600">
-                                                        <input
-                                                            required
-                                                            id="password"
-                                                            name="password"
-                                                            type={viewPass ? "text" : "password"}
-                                                            value={userData?.password || ""}
-                                                            onChange={(e) => handleUserData(e.target.name, e.target.value)}
-                                                            autoComplete="password"
-                                                            className="block w-full bg-white px-3 py-1.5 text-base text-gray-900 sm:text-sm/6 border-0 focus:outline-none"
-                                                        />
-                                                        <div className='px-3 h-full flex items-center'>
-                                                            {viewPass ? (
-                                                                <BsEye size={25} className='text-black cursor-pointer' onClick={() => setViewPass((prev) => !prev)} />
-                                                            ) : (
-                                                                <BsEyeSlash size={25} className='text-black cursor-pointer' onClick={() => setViewPass((prev) => !prev)} />
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-
                                             </div>
                                         </div>
                                         {errorMsg && (
@@ -219,7 +191,7 @@ const Modal = ({ isOpen, setIsOpen, setUserData, userData, isUpdate, setIsUpdate
                             <button
                                 type="button"
                                 onClick={(e) => handleSubmit(e)}
-                                className={`inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold ${isUpdate ? "bg-blue-200 text-blue-800 hover:bg-blue-300" : "bg-green-200 text-green-800 hover:bg-green-300" } sm:ml-3 sm:w-auto shadow-xs`}
+                                className={`inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold ${isUpdate ? "bg-blue-200 text-blue-800 hover:bg-blue-300" : "bg-green-200 text-green-800 hover:bg-green-300"} sm:ml-3 sm:w-auto shadow-xs`}
                             >
                                 {isUpdate ? "Update" : "Save"}
                             </button>

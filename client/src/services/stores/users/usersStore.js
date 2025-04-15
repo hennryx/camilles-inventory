@@ -12,8 +12,6 @@ const useUsersStore = create((set, get) => ({
         try {
             const res = await axiosTools.getData('users/getAll', "", token);
 
-            console.log(res);
-            
             set({
                 data: res.data,
                 isSuccess: res.success,
@@ -31,8 +29,6 @@ const useUsersStore = create((set, get) => ({
         try {
             const res = await axiosTools.register('auth/signup', { ...item });
 
-            console.log(res);
-            
             set({
                 isSuccess: res.success,
                 isLoading: false,
@@ -54,8 +50,6 @@ const useUsersStore = create((set, get) => ({
         try {
             const res = await axiosTools.updateData('users/update', data, token)
 
-            console.log(res);
-            
             set({
                 isSuccess: res.success,
                 isLoading: false,

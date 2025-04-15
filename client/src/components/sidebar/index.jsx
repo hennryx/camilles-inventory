@@ -7,8 +7,10 @@ import useAuthStore from '../../services/stores/authStore';
 import { BsList } from "react-icons/bs";
 import { VscAccount } from "react-icons/vsc";
 import { IoMdLogOut } from "react-icons/io";
+import Logo from "../../assets/Logo.png"
 
 import './sidebar.css'
+import Swal from 'sweetalert2';
 
 
 const Sidebar = ({ role, token }) => {
@@ -55,8 +57,19 @@ const Sidebar = ({ role, token }) => {
 
     const handleLogout = async (e) => {
         e.preventDefault();
-        console.log("Loging out...");
-        await logout();
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You want to logout?",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "logout"
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                await logout();
+            }
+        });
     }
 
     useEffect(() => {
@@ -76,18 +89,22 @@ const Sidebar = ({ role, token }) => {
 
     return (
         <div className={`flex flex-col ${isCollapsed ? 'w-16' : 'w-64'} h-auto sidebar-main transition-[width] duration-500 relative gap-6 bg-blue-700`}>
-            <button
-                onClick={() => setIsCollapsed(!isCollapsed)}
-                className={`p-2 m-4 text-black focus:outline-none transition flex ${isCollapsed ? 'justify-center content-center' : 'justify-between'} items-center font-bold z-[1]`}
-            >
+            <div className={`transition flex ${isCollapsed ? 'justify-center content-center' : 'justify-between'} items-center`}>
                 {!isCollapsed && (
-                    <span className='font-bold transition-opacity duration-300 opacity-100 text-white'>
-                        Camille's Store
+                    <span
+                        className='font-bold transition-opacity duration-300 opacity-100 text-white'
+                        onClick={() => navigate("/dashboard")}
+                    >
+                        <img src={Logo} alt="logo" className='h-18 transition-opacity duration-300 opacity-100' />
                     </span>
                 )}
-
-                <BsList size={25} className="transition-transform duration-300 text-white" />
-            </button>
+                <button
+                    onClick={() => setIsCollapsed(!isCollapsed)}
+                    className={`p-2 m-4 text-black focus:outline-none transition font-bold z-[1]`}
+                >
+                    <BsList size={25} className="transition-transform duration-300 text-white" />
+                </button>
+            </div>
 
             <nav className="sidebar z-[1] flex-1">
                 <ul className="mt-6 space-y-2">
@@ -171,9 +188,9 @@ const Sidebar = ({ role, token }) => {
             <div
                 className={`text-black flex flex-col items-center flex-nowrap duration-300 ease-in-out bg-blue-900 ${isAccOpen && "h-40"}`}
             >
-                <div 
+                <div
                     className={`bg-blue-800 h-full w-full flex items-center transition-[height] duration-500 ease-in-out ${isCollapsed ? 'justify-center p-4' : "justify-start py-4 pl-10 pr-4"} gap-4`}
-                    onClick={(e)=> setIsAccOpen(prev => !prev)}
+                    onClick={(e) => setIsAccOpen(prev => !prev)}
                 >
                     <VscAccount className='text-white' size={22} />
                     {!isCollapsed && <span className='text-white transition-opacity duration-500'>{auth.firstname}</span>}
@@ -188,7 +205,7 @@ const Sidebar = ({ role, token }) => {
                         </div>
 
                         <div className="py-2 pl-10 pr-4 cursor-pointer  hover:bg-blue-600 w-full flex gap-4 items-center" onClick={(e) => handleLogout(e)}>
-                        <IoMdLogOut size={20} className='text-white'/>
+                            <IoMdLogOut size={20} className='text-white' />
                             {!isCollapsed && (
                                 <span className="ml-2 transition-opacity duration-300 text-white">Logout</span>
                             )}

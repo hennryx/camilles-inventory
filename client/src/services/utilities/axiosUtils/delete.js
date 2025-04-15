@@ -2,8 +2,6 @@ import axios from "axios";
 import { TOKENHEADER } from "..";
 
 const deleteData = async(url, data, token) => {
-    console.log(data);
-    
     try {
         const response = await axios.delete(
             url, 

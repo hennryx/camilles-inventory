@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { IoIosAdd } from "react-icons/io";
 import Swal from 'sweetalert2';
-import useUsersStore from '../../../../services/stores/users/users';
+import useUsersStore from '../../../../services/stores/users/usersStore';
 import useAuthStore from '../../../../services/stores/authStore';
 
 const Table = ({ data, toggleAdd, handleUpdate }) => {
