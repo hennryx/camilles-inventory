@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import Table from './table'
 import Modal from './modal';
 import useAuthStore from '../../../../services/stores/authStore';
-import useUsersStore from '../../../../services/stores/users/usersStore';
 import Swal from 'sweetalert2';
 import useSuppliersStore from '../../../../services/stores/suppliers/suppliersStore';
 

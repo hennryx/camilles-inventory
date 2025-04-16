@@ -5,14 +5,13 @@ import Swal from 'sweetalert2'
 import useUsersStore from '../../../../services/stores/users/usersStore';
 import useAuthStore from '../../../../services/stores/authStore';
 
-const Modal = ({ isOpen, setIsOpen, setUserData, userData, isUpdate, setIsUpdate }) => {
+const Modal = ({ isOpen, setIsOpen, setNewSupplier, supplierData, isUpdate, setIsUpdate }) => {
     const [errorMsg, setErrorMsg] = useState("");
     const { signup, update } = useUsersStore();
     const { token } = useAuthStore()
-    const [viewPass, setViewPass] = useState(false);
 
-    const handleUserData = (key, value) => {
-        setUserData((prev) => ({
+    const handleSupplierData = (key, value) => {
+        setNewSupplier((prev) => ({
             ...prev,
             [key]: value
         }));
@@ -21,7 +20,7 @@ const Modal = ({ isOpen, setIsOpen, setUserData, userData, isUpdate, setIsUpdate
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const { firstname, lastname, email, password } = userData;
+        const { firstname, lastname, email, password } = supplierData;
 
         if (firstname === "" || lastname === "" || email === "" || password === "") {
             setErrorMsg("Please fill all the required fields!");
@@ -39,7 +38,7 @@ const Modal = ({ isOpen, setIsOpen, setUserData, userData, isUpdate, setIsUpdate
                 confirmButtonText: "Yes, Submit it!"
             }).then(async (result) => {
                 if (result.isConfirmed) {
-                    await update(userData, token)
+                    await update(supplierData, token)
                 }
             });
             return;
@@ -55,7 +54,7 @@ const Modal = ({ isOpen, setIsOpen, setUserData, userData, isUpdate, setIsUpdate
             confirmButtonText: "Yes"
         }).then(async (result) => {
             if (result.isConfirmed) {
-                await signup(userData);
+                await signup(supplierData);
             }
         });
     }
@@ -63,13 +62,11 @@ const Modal = ({ isOpen, setIsOpen, setUserData, userData, isUpdate, setIsUpdate
     const handleCancel = () => {
         setIsOpen(false);
         setIsUpdate(false);
-        setUserData(() => ({
+        setNewSupplier(() => ({
             firstname: "",
             middlename: "",
             lastname: "",
             email: "",
-            password: "",
-            role: "STAFF"
         }));
     }
 
@@ -117,8 +114,8 @@ const Modal = ({ isOpen, setIsOpen, setUserData, userData, isUpdate, setIsUpdate
                                                             id="first-name"
                                                             name="firstname"
                                                             type="text"
-                                                            value={userData.firstname}
-                                                            onChange={(e) => handleUserData(e.target.name, e.target.value)}
+                                                            value={supplierData.firstname || ""}
+                                                            onChange={(e) => handleSupplierData(e.target.name, e.target.value)}
                                                             autoComplete="given-name"
                                                             className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                                                         />
@@ -133,8 +130,8 @@ const Modal = ({ isOpen, setIsOpen, setUserData, userData, isUpdate, setIsUpdate
                                                         <input
                                                             id="middle-name"
                                                             name="middlename"
-                                                            value={userData.middlename}
-                                                            onChange={(e) => handleUserData(e.target.name, e.target.value)}
+                                                            value={supplierData.middlename}
+                                                            onChange={(e) => handleSupplierData(e.target.name, e.target.value)}
                                                             type="text"
                                                             className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                                                         />
@@ -151,8 +148,8 @@ const Modal = ({ isOpen, setIsOpen, setUserData, userData, isUpdate, setIsUpdate
                                                             required
                                                             id="last-name"
                                                             name="lastname"
-                                                            value={userData.lastname}
-                                                            onChange={(e) => handleUserData(e.target.name, e.target.value)}
+                                                            value={supplierData.lastname}
+                                                            onChange={(e) => handleSupplierData(e.target.name, e.target.value)}
                                                             type="text"
                                                             autoComplete="family-name"
                                                             className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
@@ -170,8 +167,8 @@ const Modal = ({ isOpen, setIsOpen, setUserData, userData, isUpdate, setIsUpdate
                                                             required
                                                             id="email"
                                                             name="email"
-                                                            value={userData.email}
-                                                            onChange={(e) => handleUserData(e.target.name, e.target.value)}
+                                                            value={supplierData.email}
+                                                            onChange={(e) => handleSupplierData(e.target.name, e.target.value)}
                                                             type="email"
                                                             autoComplete="email"
                                                             className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
