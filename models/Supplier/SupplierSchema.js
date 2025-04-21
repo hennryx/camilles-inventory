@@ -1,39 +1,51 @@
 const mongoose = require('mongoose');
 
 const SupplierSchema = new mongoose.Schema({
-    name: {
+    firstname: {
         type: String,
-        required: [true, 'Please add a product name'],
+        required: [true, 'Please add a name'],
         trim: true
     },
-    contactPerson: {
+
+    middlename: {
         type: String,
+        trim: true
     },
-    email: {
-        type: String
-    },
-    phone: {
+
+    lastname: {
         type: String,
-        required: true
+        required: [true, 'Please add a lastname'],
+        trim: true
     },
-    address: {
-        street: { type: String },
-        city: { type: String },
-        state: { type: String },
-        zipCode: { type: String },
-        country: { type: String }
+
+    contactNumber: {
+        type: String,
+        required: [true, "Please add a contact number"]
     },
 
     products: [{
-        product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
-        pricePerUnit: { type: Number },
-        minimumOrderQuantity: { type: Number, default: 1 },
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product'
     }],
 
-    paymentTerms: { type: String },
+    companyName: {
+        type: String,
+        required: [true, 'Please add a Company name'],
+        trim: true
+    },
+
+    companyAddress: {
+        zipcode: { type: String }, 
+        street: { type: String },
+        region: { type: String },
+        province: { type: String },
+        municipality: { type: String },
+        barangay: { type: String },
+    },
+
     isActive: { type: Boolean, default: true },
 }, {
     timestamps: true
 });
 
-module.exports = mongoose.model('Suppliers', SupplierSchema);
+module.exports = mongoose.model('Supplier', SupplierSchema);

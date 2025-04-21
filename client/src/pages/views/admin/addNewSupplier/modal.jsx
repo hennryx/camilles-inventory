@@ -93,14 +93,12 @@ const Modal = ({ isOpen, setIsOpen, setNewSupplier, supplierData, isUpdate, setI
                         <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                             <div className="sm:flex sm:items-start">
                                 <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                                    <DialogTitle as="h3" className="text-base font-semibold text-gray-900">
+                                    <DialogTitle as="h3" className="text-2xl font-semibold text-[#4154F1]">
                                         {isUpdate ? "Update supplier" : "Add new supplier"}
                                     </DialogTitle>
                                     <div className="mt-2">
                                         <div className="border-b border-gray-900/10 pb-2">
-                                            <h2 className="text-base/7 font-semibold text-gray-900">Personal Information</h2>
-                                            <p className="mt-1 text-sm/6 text-gray-600">Use a real mail where you can receive mail.</p>
-
+                                            <h2 className="text-base/7 font-semibold text-gray-900">Supplier Information</h2>
                                             <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-6">
 
                                                 <div className="sm:col-span-4">
@@ -114,7 +112,7 @@ const Modal = ({ isOpen, setIsOpen, setNewSupplier, supplierData, isUpdate, setI
                                                             id="first-name"
                                                             name="firstname"
                                                             type="text"
-                                                            value={supplierData.firstname || ""}
+                                                            value={supplierData?.firstname || ""}
                                                             onChange={(e) => handleSupplierData(e.target.name, e.target.value)}
                                                             autoComplete="given-name"
                                                             className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
@@ -130,7 +128,7 @@ const Modal = ({ isOpen, setIsOpen, setNewSupplier, supplierData, isUpdate, setI
                                                         <input
                                                             id="middle-name"
                                                             name="middlename"
-                                                            value={supplierData.middlename}
+                                                            value={supplierData?.middlename}
                                                             onChange={(e) => handleSupplierData(e.target.name, e.target.value)}
                                                             type="text"
                                                             className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
@@ -148,7 +146,7 @@ const Modal = ({ isOpen, setIsOpen, setNewSupplier, supplierData, isUpdate, setI
                                                             required
                                                             id="last-name"
                                                             name="lastname"
-                                                            value={supplierData.lastname}
+                                                            value={supplierData?.lastname}
                                                             onChange={(e) => handleSupplierData(e.target.name, e.target.value)}
                                                             type="text"
                                                             autoComplete="family-name"
@@ -167,7 +165,7 @@ const Modal = ({ isOpen, setIsOpen, setNewSupplier, supplierData, isUpdate, setI
                                                             required
                                                             id="email"
                                                             name="email"
-                                                            value={supplierData.email}
+                                                            value={supplierData?.email}
                                                             onChange={(e) => handleSupplierData(e.target.name, e.target.value)}
                                                             type="email"
                                                             autoComplete="email"

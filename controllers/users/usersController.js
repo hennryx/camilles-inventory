@@ -58,6 +58,7 @@ exports.deleteUser = async (req, res) => {
         
         if (!_id) {
             return res.status(400).json({ 
+                success: false,
                 error: "Missing ID",
                 message: "No ID provided for deletion"
             });
@@ -66,6 +67,7 @@ exports.deleteUser = async (req, res) => {
         const user = await Users.findByIdAndDelete(_id);
         if (!user) {
             return res.status(404).json({ 
+                success: false,
                 error: "Not Found",
                 message: "User not found"
             });

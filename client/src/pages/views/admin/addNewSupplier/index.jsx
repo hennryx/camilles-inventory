@@ -1,15 +1,25 @@
 import React, { useEffect, useState } from 'react'
 import Table from './table'
-import Modal from './modal';
 import useAuthStore from '../../../../services/stores/authStore';
 import Swal from 'sweetalert2';
 import useSuppliersStore from '../../../../services/stores/suppliers/suppliersStore';
+import EmbededModal from './embededModal';
 
 const info = {
     firstname: "",
     middlename: "",
     lastname: "",
-    email: "",
+    contactNumber: "",
+    companyName: "",
+    companyAddress: {
+        region: "",
+        province: "", 
+        municipality: "",
+        barangay: "",
+        street: "",
+        zipcode: ""
+    },
+    products: []
 }
 
 const AddNewSupplier = () => {
@@ -86,26 +96,30 @@ const AddNewSupplier = () => {
             <div className='container'>
                 <div className="flex flex-col gap-5 pt-4">
                     <div className=''>
-                        <h2 className='text-xl text-[#4154F1]'>Add new user</h2>
-                        <p className='text-sm text-[#989797]'>Users / {toggleAdd && "Add new user"}</p>
+                        <h2 className='text-xl text-[#4154F1]'>Add new Supplier</h2>
+                        <p className='text-sm'><span className={`${toggleAdd ? "text-[#989797]":"text-gray-600"}`}>Suppliers</span> / {toggleAdd && (<span className="text-gray-600">Add new user</span>)}</p>
                     </div>
                     <div>
-                        <Table
-                            data={suppliersData}
-                            toggleAdd={setToggleAdd}
-                            handleUpdate={handleUpdate}
-                        />
+                        {toggleAdd ? (
+                            <EmbededModal
+                                isOpen={toggleAdd}
+                                setIsOpen={setToggleAdd}
+                                setNewSupplier={setNewSupplier}
+                                newSupplier={newSupplier}
+                                isUpdate={isUpdate}
+                                setIsUpdate={setIsUpdate}
+                                temp={info}
+                            />
+                        ) : (
+                            <Table
+                                data={suppliersData}
+                                toggleAdd={setToggleAdd}
+                                handleUpdate={handleUpdate}
+                            />
+                        )}
                     </div>
                 </div>
             </div>
-            <Modal
-                isOpen={toggleAdd}
-                setIsOpen={setToggleAdd}
-                setUserData={setNewSupplier}
-                userData={newSupplier}
-                isUpdate={isUpdate}
-                setIsUpdate={setIsUpdate}
-            />
         </>
     )
 }
