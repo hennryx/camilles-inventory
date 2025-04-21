@@ -1,16 +1,10 @@
 const mongoose = require('mongoose');
 
 const ProductsSchema = new mongoose.Schema({
-	name: {
+	productName: {
 		type: String,
 		required: [true, 'Please add a product name'],
 		trim: true
-	},
-	description: {
-		type: String,
-	},
-	category: {
-		type: String
 	},
 	unit: {
 		type: String,
