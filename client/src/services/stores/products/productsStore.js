@@ -7,6 +7,11 @@ const useProductsStore = create((set, get) => ({
     isSuccess: false,
     message: "",
     isLoading: false,
+    productInfo: {
+        minStock: 0,
+        outStock: 0,
+        totalItems: 0
+    },
 
     getProducts: async (token, data="") => {
         set({ isLoading: true, isSuccess: false, message: ""})
@@ -16,6 +21,11 @@ const useProductsStore = create((set, get) => ({
 
             set({
                 data: res.data,
+                productInfo: {
+                    totalItems: res.totalItems,
+                    minStock: res.minimumStock,
+                    outStock: res.outStock,
+                },
                 message: res.message,
                 isSuccess: res.success,
                 isLoading: false

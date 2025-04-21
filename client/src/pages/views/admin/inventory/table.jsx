@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import { IoIosAdd } from "react-icons/io";
 import Swal from 'sweetalert2';
+import { ENDPOINT } from '../../../../services/utilities';
+import NoImage from "../../../../assets/No-Image.png"
 
-const Table = ({ data, totalItems, toggleAdd, handleUpdate, handleFetch }) => {
+const Table = ({ data, totalItems, toggleAdd, handleUpdate, handleFetch, setToggleReduce, setReduceProduct}) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(5);
     const [isLoading, setIsLoading] = useState(false);
+
 
     const handleDelete = (e, data) => {
         e.preventDefault();
@@ -54,6 +57,11 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, handleFetch }) => {
         setSearchTerm(e.target.value);
         setCurrentPage(1); // Reset to first page when searching
     };
+
+    const handleToggleReduceDrawer = (prd) => {
+        setReduceProduct(prd)
+        setToggleReduce(prev => !prev)
+    }
 
     // Calculate pagination numbers based on backend response
     const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -176,6 +184,7 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, handleFetch }) => {
                         <th>Size</th>
                         <th>Price</th>
                         <th>Stock</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody className='text-gray-500'>
@@ -187,12 +196,22 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, handleFetch }) => {
                         data.map((item, i) => (
                             <tr key={i}>
                                 <th>{(currentPage - 1) * itemsPerPage + i + 1}</th>
-                                <td> <img src={`/assets/products/${item.image}`} alt="image" /></td>
+                                <td>
+                                    <img
+                                        className='h-15 w-15 object-fill rounded-md'
+                                        src={`${ENDPOINT}/assets/products/${item.image}`}
+                                        alt="image"
+                                        onError={(e) => {
+                                            e.target.onerror = null;
+                                            e.target.src = NoImage
+                                        }}
+                                    />
+                                </td>
                                 <td>{item.productName}</td>
                                 <td>{item.unitSize + " " + item.unit}</td>
                                 <td>{item.sellingPrice}</td>
                                 <td>{item.inStock}</td>
-                                {/* <td className='flex flex-row justify-start items-center gap-2 p-2'>
+                                <td className='flex flex-row justify-start items-center gap-2 p-2'>
                                     <button
                                         className='p-2 bg-blue-200 text-blue-800 rounded-md hover:bg-blue-300'
                                         onClick={() => handleUpdate(item)}
@@ -205,7 +224,13 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, handleFetch }) => {
                                     >
                                         Delete
                                     </button>
-                                </td> */}
+                                    <button
+                                        className='p-2 bg-yellow-200 text-yellow-800 rounded-md hover:bg-yellow-300'
+                                        onClick={() => handleToggleReduceDrawer(item)}
+                                    >
+                                        Reduce
+                                    </button>
+                                </td>
                             </tr>
                         ))
                     ) : (

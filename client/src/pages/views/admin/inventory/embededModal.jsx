@@ -3,8 +3,9 @@ import useAuthStore from '../../../../services/stores/authStore';
 import useProductsStore from '../../../../services/stores/products/productsStore';
 import Swal from 'sweetalert2';
 import NoImage from "../../../../assets/No-Image.png"
+import { ENDPOINT } from '../../../../services/utilities';
 
-const EmbededModal = ({ setIsOpen, setNewSupplier, newSupplier, isUpdate, setIsUpdate }) => {
+const EmbededModal = ({ setIsOpen, setNewProduct, newProduct, isUpdate, setIsUpdate }) => {
 
     const [imagePreview, setImagePreview] = useState(null);
     const [errorMsg, setErrorMsg] = useState("");
@@ -15,7 +16,7 @@ const EmbededModal = ({ setIsOpen, setNewSupplier, newSupplier, isUpdate, setIsU
     const { token, auth } = useAuthStore();
 
     const handleProductData = (key, value) => {
-        setNewSupplier((prev) => ({
+        setNewProduct((prev) => ({
             ...prev,
             [key]: value
         }));
@@ -55,17 +56,28 @@ const EmbededModal = ({ setIsOpen, setNewSupplier, newSupplier, isUpdate, setIsU
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const { productName, image, unit, unitSize, sellingPrice, inStock } = newSupplier;
+        const { productName, image, unit, unitSize, sellingPrice, inStock, minStock } = newProduct;
 
+        console.log(typeof sellingPrice);
+        
         // Validation
         if (
             productName.trim() === "" ||
             !image ||
-            unit.trim() === "" ||
-            unitSize.trim() === "" ||
-            sellingPrice.trim() === ""
+            String(unit).trim() === "" ||
+            String(unitSize).trim() === "" ||
+            String(sellingPrice).trim() === ""
         ) {
             setErrorMsg("Please fill all the required fields!");
+            return;
+        }
+
+        if(
+            Number(sellingPrice) < 0 ||
+            Number(inStock) < 0 ||
+            Number(minStock) < 0
+        ) {
+            setErrorMsg(`Invalid ${Number(sellingPrice) < 0 ? "price" : Number(inStock) < 0  ? "stock" : "minimum stock"} cannot be lower than 0`);
             return;
         }
 
@@ -77,6 +89,7 @@ const EmbededModal = ({ setIsOpen, setNewSupplier, newSupplier, isUpdate, setIsU
         formData.append('unitSize', unitSize);
         formData.append('sellingPrice', sellingPrice);
         formData.append('inStock', inStock);
+        formData.append('minStock', minStock);
         formData.append('createdBy', auth?._id); // Add creator ID
 
         if (isUpdate) {
@@ -91,7 +104,7 @@ const EmbededModal = ({ setIsOpen, setNewSupplier, newSupplier, isUpdate, setIsU
             }).then(async (result) => {
                 if (result.isConfirmed) {
                     // Add product ID for update
-                    formData.append('id', newSupplier._id);
+                    formData.append('_id', newProduct._id);
                     await updateProduct(formData, token);
                     resetForm();
                 }
@@ -118,7 +131,7 @@ const EmbededModal = ({ setIsOpen, setNewSupplier, newSupplier, isUpdate, setIsU
     const resetForm = () => {
         setIsOpen(false);
         setIsUpdate(false);
-        setNewSupplier({
+        setNewProduct({
             productName: "",
             image: null,
             unit: "",
@@ -146,7 +159,7 @@ const EmbededModal = ({ setIsOpen, setNewSupplier, newSupplier, isUpdate, setIsU
             <div className="mt-2 flex flex-col gap-y-4">
                 <h2 className="text-base/7 font-semibold text-gray-900">Product Information</h2>
 
-                <div className="mt-8 grid grid-cols-1 gap-x-2 gap-y-4 sm:grid-cols-3">
+                <div className="mt-8 grid grid-cols-1 gap-x-2 gap-y-4 sm:grid-cols-4">
                     <div className='sm:col-span-1'>
                         <div className="sm:col-span-6">
                             <label htmlFor="product-image" className="block text-sm/6 font-medium text-gray-900">
@@ -163,7 +176,7 @@ const EmbededModal = ({ setIsOpen, setNewSupplier, newSupplier, isUpdate, setIsU
                                         />
                                     ) : (
                                         <img
-                                            src={NoImage}
+                                            src={isUpdate ? `${ENDPOINT}/assets/products/${newProduct.image}` :  NoImage}
                                             alt="Product placeholder"
                                             className="h-40 w-40 text-gray-400"
                                             onError={(e) => {
@@ -199,108 +212,127 @@ const EmbededModal = ({ setIsOpen, setNewSupplier, newSupplier, isUpdate, setIsU
                         </div>
                     </div>
 
-                    <div className='sm:col-span-2'>
-                        <div className="sm:col-span-6">
-                            <label htmlFor="product-name" className="block text-sm/6 font-medium text-gray-900">
-                                <span className='required'></span>
-                                Product Name
-                            </label>
-                            <div className="mt-2">
-                                <input
-                                    required
-                                    id="product-name"
-                                    name="productName"
-                                    type="text"
-                                    autoComplete="off"
-                                    value={newSupplier.productName}
-                                    onChange={(e) => handleProductData(e.target.name, e.target.value)}
-                                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="sm:col-span-3">
-                            <label htmlFor="unit" className="block text-sm/6 font-medium text-gray-900">
-                                <span className='required'></span>
-                                Unit
-                            </label>
-                            <div className="mt-2">
-                                <select
-                                    required
-                                    id="unit"
-                                    name="unit"
-                                    value={newSupplier.unit}
-                                    onChange={(e) => handleProductData(e.target.name, e.target.value)}
-                                    className="block select w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                                >
-                                    <option value="">Select Unit</option>
-                                    <option value="pcs">Piece (pcs)</option>
-                                    <option value="l">Liter (l)</option>
-                                    <option value="ml">Milliliter (ml)</option>
-                                    <option value="bottle">Bottle</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        {/* Unit Size */}
-                        <div className="sm:col-span-3">
-                            <label htmlFor="unit-size" className="block text-sm/6 font-medium text-gray-900">
-                                <span className='required'></span>
-                                Unit Size
-                            </label>
-                            <div className="mt-2">
-                                <input
-                                    required
-                                    id="unit-size"
-                                    name="unitSize"
-                                    type="text"
-                                    value={newSupplier.unitSize}
-                                    onChange={(e) => handleProductData(e.target.name, e.target.value)}
-                                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                                    placeholder="e.g. 250, 500, 1"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Selling Price */}
-                        <div className="sm:col-span-3">
-                            <label htmlFor="selling-price" className="block text-sm/6 font-medium text-gray-900">
-                                <span className='required'></span>
-                                Selling Price
-                            </label>
-                            <div className="mt-2 relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <span className="text-gray-500 sm:text-sm">₱</span>
+                    <div className='sm:col-span-3'>
+                        <div className='grid grid-cols-1 gap-x-2 gap-y-4 sm:grid-cols-4'>
+                            <div className="sm:col-span-4">
+                                <label htmlFor="product-name" className="block text-sm/6 font-medium text-gray-900">
+                                    <span className='required'></span>
+                                    Product Name
+                                </label>
+                                <div className="mt-2">
+                                    <input
+                                        required
+                                        id="product-name"
+                                        name="productName"
+                                        type="text"
+                                        autoComplete="off"
+                                        value={newProduct.productName}
+                                        onChange={(e) => handleProductData(e.target.name, e.target.value)}
+                                        className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                    />
                                 </div>
-                                <input
-                                    required
-                                    id="selling-price"
-                                    name="sellingPrice"
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    value={newSupplier.sellingPrice}
-                                    onChange={(e) => handleProductData(e.target.name, e.target.value)}
-                                    className="block w-full pl-7 rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                                />
                             </div>
-                        </div>
 
-                        {/* Initial Stock */}
-                        <div className="sm:col-span-3">
-                            <label htmlFor="in-stock" className="block text-sm/6 font-medium text-gray-900">
-                                Initial Stock
-                            </label>
-                            <div className="mt-2">
-                                <input
-                                    id="in-stock"
-                                    name="inStock"
-                                    type="number"
-                                    min="0"
-                                    value={newSupplier.inStock}
-                                    onChange={(e) => handleProductData(e.target.name, e.target.value)}
-                                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                                />
+                            <div className="sm:col-span-2">
+                                <label htmlFor="unit" className="block text-sm/6 font-medium text-gray-900">
+                                    <span className='required'></span>
+                                    Unit
+                                </label>
+                                <div className="mt-2">
+                                    <select
+                                        required
+                                        id="unit"
+                                        name="unit"
+                                        value={newProduct.unit}
+                                        onChange={(e) => handleProductData(e.target.name, e.target.value)}
+                                        className="block select w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                    >
+                                        <option value="">Select Unit</option>
+                                        <option value="pcs">Piece (pcs)</option>
+                                        <option value="l">Liter (l)</option>
+                                        <option value="ml">Milliliter (ml)</option>
+                                        <option value="bottle">Bottle</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Unit Size */}
+                            <div className="sm:col-span-2">
+                                <label htmlFor="unit-size" className="block text-sm/6 font-medium text-gray-900">
+                                    <span className='required'></span>
+                                    Unit Size
+                                </label>
+                                <div className="mt-2">
+                                    <input
+                                        required
+                                        id="unit-size"
+                                        name="unitSize"
+                                        type="text"
+                                        value={newProduct.unitSize}
+                                        onChange={(e) => handleProductData(e.target.name, e.target.value)}
+                                        className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                        placeholder="e.g. 250, 500, 1"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Selling Price */}
+                            <div className="sm:col-span-4">
+                                <label htmlFor="selling-price" className="block text-sm/6 font-medium text-gray-900">
+                                    <span className='required'></span>
+                                    Selling Price
+                                </label>
+                                <div className="mt-2 relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span className="text-gray-500 sm:text-sm">₱</span>
+                                    </div>
+                                    <input
+                                        required
+                                        id="selling-price"
+                                        name="sellingPrice"
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={newProduct.sellingPrice}
+                                        onChange={(e) => handleProductData(e.target.name, e.target.value)}
+                                        className="block w-full pl-7 rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Initial Stock */}
+                            <div className="sm:col-span-2">
+                                <label htmlFor="in-stock" className="block text-sm/6 font-medium text-gray-900">
+                                    Initial Stock
+                                </label>
+                                <div className="mt-2">
+                                    <input
+                                        id="in-stock"
+                                        name="inStock"
+                                        type="number"
+                                        min="0"
+                                        value={newProduct.inStock}
+                                        onChange={(e) => handleProductData(e.target.name, e.target.value)}
+                                        className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="sm:col-span-2">
+                                <label htmlFor="in-stock" className="block text-sm/6 font-medium text-gray-900">
+                                    Minimum Stock
+                                </label>
+                                <div className="mt-2">
+                                    <input
+                                        id="min-stock"
+                                        name="minStock"
+                                        type="number"
+                                        min="0"
+                                        value={newProduct.minStock}
+                                        onChange={(e) => handleProductData(e.target.name, e.target.value)}
+                                        className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>

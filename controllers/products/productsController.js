@@ -24,16 +24,25 @@ exports.getAllProducts = async (req, res) => {
 
         // Get total count for pagination
         const totalItems = await Product.countDocuments(query);
-        
+
         // Get paginated data
         const products = await Product.find(query)
             .skip(skip)
             .limit(limit)
             .sort({ createdAt: -1 });
 
+        const minimumStock = await Product.countDocuments({
+            $expr: { $lte: ["$inStock", "$minStock"] }
+        });
+
+        // Count of out-of-stock products
+        const outStock = await Product.countDocuments({ inStock: 0 });
+
         res.status(200).json({
             success: true,
             totalItems,
+            minimumStock,
+            outStock,
             currentPage: page,
             totalPages: Math.ceil(totalItems / limit),
             data: products
@@ -51,7 +60,7 @@ exports.addProduct = async (req, res) => {
     try {
         // Destructure fields from the request body
         const { productName, unit, unitSize, sellingPrice, inStock, createdBy } = req.body;
-        
+
         // Validate required fields
         if (!productName || !unit || !unitSize || !sellingPrice) {
             return res.status(400).json({
@@ -60,7 +69,7 @@ exports.addProduct = async (req, res) => {
             });
         }
 
-        
+
         // Save file path/name in database
         const product = await Product.create({
             productName,
@@ -88,17 +97,18 @@ exports.addProduct = async (req, res) => {
 // Update product
 exports.updateProduct = async (req, res) => {
     try {
-        const { id } = req.params;
-        
+        // Update other fields
+        const { productName, unit, unitSize, sellingPrice, inStock, _id } = req.body;
+
         // Find existing product
-        const product = await Product.findById(id);
+        const product = await Product.findById(_id);
         if (!product) {
             return res.status(404).json({
                 success: false,
                 message: "Product not found"
             });
         }
-        
+
         // Check if new image is uploaded
         if (req.file) {
             // Delete old image if exists
@@ -108,28 +118,25 @@ exports.updateProduct = async (req, res) => {
                     fs.unlinkSync(oldImagePath);
                 }
             }
-            
+
             // Update with new image
             product.image = req.file.filename;
         }
-        
-        // Update other fields
-        const { productName, unit, unitSize, sellingPrice, inStock } = req.body;
-        
+
         if (productName) product.productName = productName;
         if (unit) product.unit = unit;
         if (unitSize) product.unitSize = unitSize;
         if (sellingPrice) product.sellingPrice = sellingPrice;
         if (inStock !== undefined) product.inStock = inStock;
-        
+
         await product.save();
-        
+
         res.status(200).json({
             success: true,
             message: "Product updated successfully!",
             product
         });
-        
+
     } catch (error) {
         res.status(400).json({
             success: false,
@@ -143,14 +150,14 @@ exports.deleteProduct = async (req, res) => {
     try {
         const { id } = req.params;
         const product = await Product.findById(id);
-        
+
         if (!product) {
             return res.status(404).json({
                 success: false,
                 message: "Product not found"
             });
         }
-        
+
         // Delete product image if exists
         if (product.image) {
             const imagePath = path.join(__dirname, '../../assets/products', product.image);
@@ -158,9 +165,9 @@ exports.deleteProduct = async (req, res) => {
                 fs.unlinkSync(imagePath);
             }
         }
-        
+
         await Product.findByIdAndDelete(id);
-        
+
         res.status(200).json({
             success: true,
             message: "Product deleted successfully!"

@@ -107,7 +107,7 @@ const Sidebar = ({ role, token }) => {
             </div>
 
             <nav className="sidebar z-[1] flex-1">
-                <ul className="mt-6 space-y-2">
+                <ul className="mt-2">
                     {menuItems.map((item, index) => (
                         <li key={index} className='flex flex-col items-end transition-all duration-300'>
                             <div

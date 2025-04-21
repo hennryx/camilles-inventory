@@ -25,7 +25,7 @@ const access = [
   },
 
   {
-    name: "Inventory",
+    name: "Products",
     path: "/inventory",
     icon: BsBox,
     element: Inventory,

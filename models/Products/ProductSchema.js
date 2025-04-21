@@ -23,6 +23,10 @@ const ProductsSchema = new mongoose.Schema({
 	image: {
 		type: String
 	},
+	minStock : {
+		type: Number,
+		default: 10
+	},
 	createdBy: {
 		type: mongoose.Schema.ObjectId,
 		ref: 'User',
