@@ -4,16 +4,18 @@ import Swal from 'sweetalert2';
 import { ENDPOINT } from '../../../../services/utilities';
 import NoImage from "../../../../assets/No-Image.png"
 import { Checkbox } from '@headlessui/react';
+import useProductsStore from '../../../../services/stores/products/productsStore';
+import useAuthStore from '../../../../services/stores/authStore';
 
-const Table = ({ data, totalItems, toggleAdd, handleUpdate, handleFetch, setToggleReduce, setReduceProduct, toggleReduce }) => {
+const Table = ({ data, totalItems, toggleAdd, handleUpdate, setToggleReduce, setReduceProduct, isLoading, loadData }) => {
+    const { deleteProduct } = useProductsStore();
+    const { token } = useAuthStore()
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(5);
-    const [isLoading, setIsLoading] = useState(false);
-    const [prevReducePrd, setPrevReducePrd] = useState("");
     const [selectedPrd, setSelectedPrd] = useState([])
 
-    const handleDelete = (e, data) => {
+    const handleDelete = (e, _id) => {
         e.preventDefault();
 
         Swal.fire({
@@ -26,21 +28,10 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, handleFetch, setTogg
             confirmButtonText: "Yes, Delete it!"
         }).then(async (result) => {
             if (result.isConfirmed) {
-                // Refresh data after deletion
-                loadData();
+                await deleteProduct({_id}, token)
             }
         });
     }
-
-    const loadData = async () => {
-        setIsLoading(true);
-        await handleFetch({
-            page: currentPage,
-            limit: itemsPerPage,
-            search: searchTerm
-        });
-        setIsLoading(false);
-    };
 
     useEffect(() => {
         console.log(selectedPrd);
@@ -62,42 +53,36 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, handleFetch, setTogg
 
     const handleSearchChange = (e) => {
         setSearchTerm(e.target.value);
-        setCurrentPage(1); // Reset to first page when searching
+        setCurrentPage(1); 
     };
 
-    /* const handleToggleReduceDrawer = (item = {}) => {
-        setReduceProduct(selectedPrd)
-
-        if(Object.keys(item).length > 0) {
-            setSelectedPrd((prev) => ([...prev, item]))
-        }
-
-        console.log(selectedPrd, (prevReducePrd === selectedPrd[selectedPrd.length -1] || !prevReducePrd));
-        
-        if (selectedPrd.length === 1  && (prevReducePrd === selectedPrd[selectedPrd.length -1] || !prevReducePrd)) {
-            setToggleReduce(prev => !prev)
-            setSelectedPrd([])
-        }
-
-        setPrevReducePrd(selectedPrd[selectedPrd.length -1])
-    } */
-
-    /* useEffect(() => {
-        if(selectedPrd.length > 0) {
-            setReduceProduct(selectedPrd)
-
-            if (selectedPrd.length === 1  && (prevReducePrd === selectedPrd[selectedPrd.length -1] || !prevReducePrd)) {
-                setToggleReduce(prev => !prev)
+    const handleItemSelection = (item) => {
+        if (Array.isArray(item)) {
+            if (selectedPrd.length === data.length) {
+                setSelectedPrd([]);
+            } else {
+                setSelectedPrd([...data]);
             }
+        } else {
+            const isSelected = selectedPrd.some(product => product._id === item._id);
             
-            if(toggleReduce) {
-                setSelectedPrd([])
+            if (isSelected) {
+                setSelectedPrd(selectedPrd.filter(product => product._id !== item._id));
+            } else {
+                setSelectedPrd([...selectedPrd, item]);
             }
-
-            setPrevReducePrd(selectedPrd[selectedPrd.length -1])
         }
+    };
 
-    }, [selectedPrd]) */
+    const openReduceDrawer = (productsToReduce = null) => {
+        const productsForDrawer = productsToReduce || selectedPrd;
+        
+        if (productsForDrawer && productsForDrawer.length > 0) {
+            setReduceProduct(productsForDrawer);
+            setToggleReduce(true);
+        }
+    };
+
 
     // Calculate pagination numbers based on backend response
     const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -210,13 +195,13 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, handleFetch, setTogg
                                 Add New Product
                             </button>
 
-                            {selectedPrd.length > 2 && (
+                            {selectedPrd.length > 0 && (
                                 <button
                                     className='flex items-center justify-center px-4 py-3 bg-green-200 rounded-md text-green-800 whitespace-nowrap hover:bg-green-300'
-                                    onClick={() => setSelectedPrd(data)}
+                                    onClick={() => openReduceDrawer()}
                                 >
                                     <IoIosAdd />
-                                    Reduce All
+                                    Reduce {selectedPrd.length > 1 ? 'All' : 'Item'} ({selectedPrd.length})
                                 </button>
                             )}
                         </div>
@@ -226,14 +211,8 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, handleFetch, setTogg
                     <tr className='text-black bg-gray-300'>
                         <th>
                             <Checkbox
-                                checked={selectedPrd.length === data.length}
-                                onChange={(isChecked) => {
-                                    if (isChecked) {
-                                        setSelectedPrd(data)
-                                    } else {
-                                        setSelectedPrd([])
-                                    }
-                                }}
+                                checked={selectedPrd.length === data.length && data.length > 0}
+                                onChange={() => handleItemSelection(data)}
                                 className="group block size-4 rounded-full bg-white border border-gray-400 data-[checked]:bg-blue-200"
                             >
                                 <svg className="stroke-blue-800 opacity-0 group-data-[checked]:opacity-100" viewBox="0 0 14 14" fill="none">
@@ -261,13 +240,7 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, handleFetch, setTogg
                                 <td>
                                     <Checkbox
                                         checked={selectedPrd?.some((prd) => prd._id === item._id)}
-                                        onChange={(isChecked) => {
-                                            if (isChecked) {
-                                                setSelectedPrd((prev) => ([...prev, item]))
-                                            } else {
-                                                setSelectedPrd((prev) => prev.filter((prd) => prd._id !== item._id))
-                                            }
-                                        }}
+                                        onChange={() => handleItemSelection(item)}
                                         className="group block size-4 rounded-full bg-white border border-gray-400 data-[checked]:bg-blue-200"
                                     >
                                         <svg className="stroke-blue-800 opacity-0 group-data-[checked]:opacity-100" viewBox="0 0 14 14" fill="none">
@@ -300,15 +273,9 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, handleFetch, setTogg
                                     </button>
                                     <button
                                         className='p-2 bg-red-200 text-red-800 rounded-md hover:bg-red-300'
-                                        onClick={(e) => handleDelete(e, item)}
+                                        onClick={(e) => handleDelete(e, item._id)}
                                     >
                                         Delete
-                                    </button>
-                                    <button
-                                        className='p-2 bg-yellow-200 text-yellow-800 rounded-md hover:bg-yellow-300'
-                                        onClick={() => setSelectedPrd([item])}
-                                    >
-                                        Reduce
                                     </button>
                                 </td>
                             </tr>

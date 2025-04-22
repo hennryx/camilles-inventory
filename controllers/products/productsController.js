@@ -148,8 +148,9 @@ exports.updateProduct = async (req, res) => {
 // Delete product
 exports.deleteProduct = async (req, res) => {
     try {
-        const { id } = req.params;
-        const product = await Product.findById(id);
+        const { _id } = req.body;
+        
+        const product = await Product.findById(_id);
 
         if (!product) {
             return res.status(404).json({
@@ -166,9 +167,10 @@ exports.deleteProduct = async (req, res) => {
             }
         }
 
-        await Product.findByIdAndDelete(id);
+        await Product.findByIdAndDelete(_id);
 
         res.status(200).json({
+            product: product,
             success: true,
             message: "Product deleted successfully!"
         });

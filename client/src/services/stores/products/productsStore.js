@@ -61,7 +61,7 @@ const useProductsStore = create((set, get) => ({
 
     },
 
-    deleteproduct: async (data, token) => {
+    deleteProduct: async (data, token) => {
         set({ isLoading: true, message: '', isSuccess: false });
 
         try {

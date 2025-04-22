@@ -8,6 +8,6 @@ const { uploadMiddleware } = require('../../middlewares/uploadMiddleware');
 router.get('/getAll', protect, getAllProducts);
 router.post('/save', protect, uploadMiddleware, addProduct);
 router.put('/update', protect, uploadMiddleware, updateProduct);
-router.delete('/delete', deleteProduct);
+router.delete('/delete', protect, deleteProduct);
 
 module.exports = router;

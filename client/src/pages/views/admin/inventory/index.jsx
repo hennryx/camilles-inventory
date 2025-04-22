@@ -21,7 +21,7 @@ const info = {
 }
 const Inventory = () => {
     const { token } = useAuthStore();
-    const { getProducts, data, productInfo, product, reset, message, isSuccess } = useProductsStore();
+    const { getProducts, data, productInfo, product, reset, message, isSuccess, isLoading } = useProductsStore();
     const [toggleAdd, setToggleAdd] = useState(false);
     const [toggleReduce, setToggleReduce] = useState(false);
     const [productsData, setProductsdata] = useState([]);
@@ -140,10 +140,10 @@ const Inventory = () => {
                                 totalItems={data.length}
                                 toggleAdd={setToggleAdd}
                                 handleUpdate={handleUpdate}
-                                handleFetch={handleFetch}
                                 setToggleReduce={setToggleReduce}
                                 setReduceProduct={setReduceProduct}
-                                toggleReduce={toggleReduce}
+                                isLoading={isLoading}
+                                loadData={handleFetch}
                             />
                         </div>
                     )}
