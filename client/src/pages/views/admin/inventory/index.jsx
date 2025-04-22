@@ -8,6 +8,7 @@ import useAuthStore from '../../../../services/stores/authStore';
 import useProductsStore from '../../../../services/stores/products/productsStore';
 import EmbededModal from './embededModal';
 import ReduceDrawer from './reduceDrawer';
+import Swal from 'sweetalert2';
 
 const info = {
     productName: "",
@@ -56,6 +57,50 @@ const Inventory = () => {
         }
     }, [data])
 
+    useEffect(() => {
+        if (isSuccess && message) {
+            setToggleAdd(false)
+            setToggleReduce(false)
+
+            setNewProduct(info)
+
+            if (product && isUpdate) {
+                const updatedProduct = productsData.map(u =>
+                    u._id === product._id ? product : u
+                );
+                setProductsdata(updatedProduct);
+                setIsUpdate(false);
+
+            } else if (product) {
+                setProductsdata((prev) => {
+                    const exists = prev.some(u => u._id === product._id);
+
+                    if (exists) {
+                        return prev.filter(u => u._id !== product._id);
+                    } else {
+                        return [...prev, product];
+                    }
+                })
+            }
+
+            reset()
+            Swal.fire({
+                title: "Saved!",
+                text: message,
+                icon: "success"
+            });
+
+        } else if (message) {
+            reset()
+            Swal.fire({
+                title: "Error!",
+                text: message,
+                icon: "error"
+            });
+        }
+
+    }, [message, isSuccess, product])
+
     return (
         <div className='container'>
             <div className="flex flex-col gap-5 pt-4">
@@ -89,7 +134,7 @@ const Inventory = () => {
 
                 <div className="flex flex-row gap-4">
                     {!toggleAdd && (
-                        <div className='flex-2 transition-all duration-300 ease-in'>
+                        <div className={`transition-all duration-300 ease-in ${toggleReduce ? 'w-2/3' : 'w-full'}`}>
                             <Table
                                 data={productsData}
                                 totalItems={data.length}
@@ -98,13 +143,17 @@ const Inventory = () => {
                                 handleFetch={handleFetch}
                                 setToggleReduce={setToggleReduce}
                                 setReduceProduct={setReduceProduct}
+                                toggleReduce={toggleReduce}
                             />
                         </div>
                     )}
 
                     {!toggleAdd && toggleReduce && (
-                        <div className='flex-1 bg-white rounded-md p-2 h-full transition-all duration-300 ease-in-out'>
-                            <ReduceDrawer reduceProduct={reduceProduct} />
+                        <div className="w-1/3 bg-white rounded-lg shadow-md transition-all duration-300 ease-in-out">
+                            <ReduceDrawer
+                                reduceProduct={reduceProduct}
+                                onClose={setToggleReduce}
+                            />
                         </div>
                     )}
                 </div>

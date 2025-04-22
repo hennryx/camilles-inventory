@@ -11,7 +11,6 @@ const EmbededModal = ({ setIsOpen, setNewProduct, newProduct, isUpdate, setIsUpd
     const [errorMsg, setErrorMsg] = useState("");
     const fileInputRef = useRef(null);
 
-    // Assume these store functions are available or will be created
     const { addProduct, updateProduct } = useProductsStore();
     const { token, auth } = useAuthStore();
 

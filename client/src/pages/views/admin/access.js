@@ -4,6 +4,7 @@ import Inventory from "./inventory";
 import AddNewSupplier from "./addNewSupplier";
 import Reports from "./reports";
 import Purchase from "./purchase";
+import Returns from "./returns";
 
 import { BsGrid1X2, BsPersonAdd, BsBox, BsTruck } from "react-icons/bs";
 import { LuClipboardList } from "react-icons/lu";
@@ -43,6 +44,13 @@ const access = [
     path: "/purchase",
     icon: LuClipboardList,
     element: Purchase,
+  },
+
+  {
+    name: "Returns",
+    path: "/returns",
+    icon: LuClipboardList,
+    element: Returns,
   },
 
   {

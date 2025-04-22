@@ -3,13 +3,15 @@ import { IoIosAdd } from "react-icons/io";
 import Swal from 'sweetalert2';
 import { ENDPOINT } from '../../../../services/utilities';
 import NoImage from "../../../../assets/No-Image.png"
+import { Checkbox } from '@headlessui/react';
 
-const Table = ({ data, totalItems, toggleAdd, handleUpdate, handleFetch, setToggleReduce, setReduceProduct}) => {
+const Table = ({ data, totalItems, toggleAdd, handleUpdate, handleFetch, setToggleReduce, setReduceProduct, toggleReduce }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(5);
     const [isLoading, setIsLoading] = useState(false);
-
+    const [prevReducePrd, setPrevReducePrd] = useState("");
+    const [selectedPrd, setSelectedPrd] = useState([])
 
     const handleDelete = (e, data) => {
         e.preventDefault();
@@ -41,6 +43,11 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, handleFetch, setTogg
     };
 
     useEffect(() => {
+        console.log(selectedPrd);
+        
+    }, [selectedPrd])
+
+    useEffect(() => {
         loadData();
     }, [currentPage, itemsPerPage, searchTerm]);
 
@@ -58,10 +65,39 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, handleFetch, setTogg
         setCurrentPage(1); // Reset to first page when searching
     };
 
-    const handleToggleReduceDrawer = (prd) => {
-        setReduceProduct(prd)
-        setToggleReduce(prev => !prev)
-    }
+    /* const handleToggleReduceDrawer = (item = {}) => {
+        setReduceProduct(selectedPrd)
+
+        if(Object.keys(item).length > 0) {
+            setSelectedPrd((prev) => ([...prev, item]))
+        }
+
+        console.log(selectedPrd, (prevReducePrd === selectedPrd[selectedPrd.length -1] || !prevReducePrd));
+        
+        if (selectedPrd.length === 1  && (prevReducePrd === selectedPrd[selectedPrd.length -1] || !prevReducePrd)) {
+            setToggleReduce(prev => !prev)
+            setSelectedPrd([])
+        }
+
+        setPrevReducePrd(selectedPrd[selectedPrd.length -1])
+    } */
+
+    /* useEffect(() => {
+        if(selectedPrd.length > 0) {
+            setReduceProduct(selectedPrd)
+
+            if (selectedPrd.length === 1  && (prevReducePrd === selectedPrd[selectedPrd.length -1] || !prevReducePrd)) {
+                setToggleReduce(prev => !prev)
+            }
+            
+            if(toggleReduce) {
+                setSelectedPrd([])
+            }
+
+            setPrevReducePrd(selectedPrd[selectedPrd.length -1])
+        }
+
+    }, [selectedPrd]) */
 
     // Calculate pagination numbers based on backend response
     const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -173,11 +209,38 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, handleFetch, setTogg
                                 <IoIosAdd />
                                 Add New Product
                             </button>
+
+                            {selectedPrd.length > 2 && (
+                                <button
+                                    className='flex items-center justify-center px-4 py-3 bg-green-200 rounded-md text-green-800 whitespace-nowrap hover:bg-green-300'
+                                    onClick={() => setSelectedPrd(data)}
+                                >
+                                    <IoIosAdd />
+                                    Reduce All
+                                </button>
+                            )}
                         </div>
                     </div>
                 </caption>
                 <thead>
                     <tr className='text-black bg-gray-300'>
+                        <th>
+                            <Checkbox
+                                checked={selectedPrd.length === data.length}
+                                onChange={(isChecked) => {
+                                    if (isChecked) {
+                                        setSelectedPrd(data)
+                                    } else {
+                                        setSelectedPrd([])
+                                    }
+                                }}
+                                className="group block size-4 rounded-full bg-white border border-gray-400 data-[checked]:bg-blue-200"
+                            >
+                                <svg className="stroke-blue-800 opacity-0 group-data-[checked]:opacity-100" viewBox="0 0 14 14" fill="none">
+                                    <path d="M3 8L6 11L11 3.5" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                            </Checkbox>
+                        </th>
                         <th>#</th>
                         <th>image</th>
                         <th>product</th>
@@ -195,7 +258,24 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, handleFetch, setTogg
                     ) : data && data.length > 0 ? (
                         data.map((item, i) => (
                             <tr key={i}>
-                                <th>{(currentPage - 1) * itemsPerPage + i + 1}</th>
+                                <td>
+                                    <Checkbox
+                                        checked={selectedPrd?.some((prd) => prd._id === item._id)}
+                                        onChange={(isChecked) => {
+                                            if (isChecked) {
+                                                setSelectedPrd((prev) => ([...prev, item]))
+                                            } else {
+                                                setSelectedPrd((prev) => prev.filter((prd) => prd._id !== item._id))
+                                            }
+                                        }}
+                                        className="group block size-4 rounded-full bg-white border border-gray-400 data-[checked]:bg-blue-200"
+                                    >
+                                        <svg className="stroke-blue-800 opacity-0 group-data-[checked]:opacity-100" viewBox="0 0 14 14" fill="none">
+                                            <path d="M3 8L6 11L11 3.5" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                    </Checkbox>
+                                </td>
+                                <td>{(currentPage - 1) * itemsPerPage + i + 1}</td>
                                 <td>
                                     <img
                                         className='h-15 w-15 object-fill rounded-md'
@@ -226,7 +306,7 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, handleFetch, setTogg
                                     </button>
                                     <button
                                         className='p-2 bg-yellow-200 text-yellow-800 rounded-md hover:bg-yellow-300'
-                                        onClick={() => handleToggleReduceDrawer(item)}
+                                        onClick={() => setSelectedPrd([item])}
                                     >
                                         Reduce
                                     </button>
