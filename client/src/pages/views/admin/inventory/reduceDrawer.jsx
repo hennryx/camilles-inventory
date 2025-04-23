@@ -69,6 +69,90 @@ const ReduceDrawer = ({ reduceProduct, onClose }) => {
         await addProduct(transactionData, token)
     };
 
+
+    const renderProductDetails = () => {
+
+        if (Array.isArray(reduceProduct) && reduceProduct.length > 1) {
+            return (
+                <>
+                    <div className="h-32 w-32 overflow-hidden rounded border border-gray-300 bg-gray-100 flex items-center justify-center">
+                        {reduceProduct.map((item, i) => (
+                            <img
+                                key={i}
+                                className="h-12 w-12 object-cover rounded-md"
+                                src={`${ENDPOINT}/assets/products/${item.image}`}
+                                alt={item.productName}
+                                onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = NoImage;
+                                }}
+                            />
+                        ))}
+                    </div>
+
+                    <table className='table my-2'>
+                        <thead>
+                            <tr className='text-black bg-gray-100'>
+                                <th>#</th>
+                                <th>Name</th>
+                                <th>Price</th>
+                                <th>Size</th>
+                                <th>Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody className='text-gray-500'>
+                            {reduceProduct.map((item, i) => (
+                                <tr key={i} className='border-b-2 border-gray-200'>
+                                    <td>{i+1}</td>
+                                    <td>{item.productName}</td>
+                                    <td>{item.sellingPrice}</td>
+                                    <td>{item.unitSize} {item.unit}</td>
+                                    <td>{item.inStock}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </>
+            )
+        } else {
+            const { image, productName, sellingPrice, unit, unitSize, inStock } = reduceProduct[0];
+            return (
+                <>
+                    <div className="h-32 w-32 overflow-hidden rounded border border-gray-300 bg-gray-100 flex items-center justify-center">
+                        <img
+                            className="h-32 w-32 object-cover rounded-md"
+                            src={`${ENDPOINT}/assets/products/${image}`}
+                            alt={productName}
+                            onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = NoImage;
+                            }}
+                        />
+                    </div>
+
+                    <div className="border-y border-gray-100 w-full py-4">
+                        <h3 className="text-lg font-semibold mb-2">Product Details</h3>
+
+                        <div className="grid grid-cols-2 gap-2">
+                            <p className="text-sm text-gray-500">Name:</p>
+                            <p className="text-sm font-medium">{productName}</p>
+
+                            <p className="text-sm text-gray-500">Price:</p>
+                            <p className="text-sm font-medium">₱ {sellingPrice}</p>
+
+                            <p className="text-sm text-gray-500">Size:</p>
+                            <p className="text-sm font-medium">{unitSize} {unit}</p>
+
+                            <p className="text-sm text-gray-500">Available Stock:</p>
+                            <p className="text-sm font-medium">{inStock}  {inStock > 1 ? "bottles" : "bottle"}</p>
+                        </div>
+                    </div>
+                </>
+            )
+        }
+    }
+
+
     return (
         <div className="flex flex-col h-full">
             <div className="flex justify-between items-center border-b border-gray-200 p-4 mb-4">
@@ -84,34 +168,7 @@ const ReduceDrawer = ({ reduceProduct, onClose }) => {
             </div>
 
             <div className="flex flex-col items-center p-4 gap-4">
-                <div className="h-32 w-32 overflow-hidden rounded border border-gray-300 bg-gray-100 flex items-center justify-center">
-                    <img
-                        className="h-32 w-32 object-cover rounded-md"
-                        src={`${ENDPOINT}/assets/products/${image}`}
-                        alt={productName}
-                        onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = NoImage;
-                        }}
-                    />
-                </div>
-                <div className="border-y border-gray-100 w-full py-4">
-                    <h3 className="text-lg font-semibold mb-2">Product Details</h3>
-
-                    <div className="grid grid-cols-2 gap-2">
-                        <p className="text-sm text-gray-500">Name:</p>
-                        <p className="text-sm font-medium">{productName}</p>
-
-                        <p className="text-sm text-gray-500">Price:</p>
-                        <p className="text-sm font-medium">₱ {sellingPrice}</p>
-
-                        <p className="text-sm text-gray-500">Size:</p>
-                        <p className="text-sm font-medium">{unitSize} {unit}</p>
-
-                        <p className="text-sm text-gray-500">Available Stock:</p>
-                        <p className="text-sm font-medium">{inStock}  {inStock > 1 ? "bottles" : "bottle"}</p>
-                    </div>
-                </div>
+                {renderProductDetails()}
 
                 <form onSubmit={handleSubmit} className="w-full space-y-4">
                     <div>
