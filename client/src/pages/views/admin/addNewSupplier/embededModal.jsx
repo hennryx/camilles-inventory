@@ -3,12 +3,29 @@ import useAuthStore from '../../../../services/stores/authStore';
 import useSuppliersStore from '../../../../services/stores/suppliers/suppliersStore';
 import AddressSelector from '../../../../components/address';
 import Swal from 'sweetalert2';
+import useProductsStore from '../../../../services/stores/products/productsStore';
+import { Checkbox } from '@headlessui/react';
+import { ENDPOINT } from '../../../../services/utilities';
 
-const EmbededModal = ({ isOpen, setIsOpen, setNewSupplier, newSupplier, isUpdate, setIsUpdate, temp }) => {
+const EmbededModal = ({ setIsOpen, setNewSupplier, newSupplier, isUpdate, setIsUpdate, temp }) => {
+    const { data: productsData, getProducts } = useProductsStore();
+    const { addSupplier, updateSupplier } = useSuppliersStore();
 
     const [errorMsg, setErrorMsg] = useState("");
-    const { addSupplier, updateSupplier } = useSuppliersStore();
     const { token } = useAuthStore();
+    const [products, setProducts] = useState([])
+
+    useEffect(() => {
+        if (token) {
+            getProducts(token)
+        }
+    }, [token])
+
+    useEffect(() => {
+        if (productsData) {
+            setProducts(productsData)
+        }
+    }, [productsData])
 
     const handleSupplierData = (key, value) => {
         setNewSupplier((prev) => ({
@@ -23,7 +40,7 @@ const EmbededModal = ({ isOpen, setIsOpen, setNewSupplier, newSupplier, isUpdate
 
         const { firstname, lastname, contactNumber, companyAddress, companyName } = newSupplier;
         const { region, province, municipality, barangay, zipcode } = companyAddress;
-        
+
         if (
             firstname.trim() === "" ||
             lastname.trim() === "" ||
@@ -98,7 +115,7 @@ const EmbededModal = ({ isOpen, setIsOpen, setNewSupplier, newSupplier, isUpdate
 
             <div className="mt-2">
                 <h2 className="text-base/7 font-semibold text-gray-900">Supplier Information</h2>
-                <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-6">
+                <div className="mt-4 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-6">
 
                     <div className="sm:col-span-4">
                         <label htmlFor="first-name" className="block text-sm/6 font-medium text-gray-900">
@@ -230,10 +247,55 @@ const EmbededModal = ({ isOpen, setIsOpen, setNewSupplier, newSupplier, isUpdate
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {errorMsg && (
-                    <div className='text-red-800 bg-red-200 p-2 flex justify-center rounded-md'>{errorMsg}</div>
-                )}
+            <div className="mt-4">
+                <h2 className="text-base/7 font-semibold text-gray-900">Company Products</h2>
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-4 gap-4">
+                    {products.map((item, i) => (
+                        <div
+                            key={i}
+                            className="flex gap-2 justify-start items-center bg-gray-50 p-2 rounded-md"
+                        >
+                            <Checkbox
+                                checked={newSupplier.products?.some(prd => prd === item._id)}
+                                onChange={(isChecked) => {
+                                    if (isChecked) {
+                                        setNewSupplier((prev) => ({
+                                            ...prev,
+                                            products: [...prev.products, item._id]
+                                        }))
+                                    } else {
+                                        setNewSupplier(prev => ({
+                                            ...prev,
+                                            products: prev.products.filter(prd => prd !== item._id),
+                                        }));
+                                    }
+                                }}
+                                className="group block size-4 rounded-full bg-white border border-gray-400 data-[checked]:bg-blue-200"
+                            >
+                                <svg className="stroke-blue-800 opacity-0 group-data-[checked]:opacity-100" viewBox="0 0 14 14" fill="none">
+                                    <path d="M3 8L6 11L11 3.5" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                            </Checkbox>
+
+                            <img
+                                className='h-12 w-auto'
+                                src={`${ENDPOINT}/assets/products/${item.image}`}
+                                alt={item.productName}
+                            />
+
+                            <div className="flex flex-col text-sm/6 font-medium text-gray-900">
+                                <h2>{item.productName}</h2>
+                                <h2>{item.unitSize} {item.unit}</h2>
+                            </div>
+                        </div>
+                    ))}
+
+                    {errorMsg && (
+                        <div className='text-red-800 bg-red-200 p-2 flex justify-center rounded-md'>{errorMsg}</div>
+                    )}
+                </div>
             </div>
 
             <div className="mt-4">

@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { IoIosAdd } from "react-icons/io";
 import Swal from 'sweetalert2';
-import useUsersStore from '../../../../services/stores/users/usersStore';
 import useAuthStore from '../../../../services/stores/authStore';
+import useSuppliersStore from '../../../../services/stores/suppliers/suppliersStore';
 
 const Table = ({ data, toggleAdd, handleUpdate }) => {
-    const { deleteUser } = useUsersStore();
+    const { deleteSupplier } = useSuppliersStore()
     const { token } = useAuthStore()
     const [searchResult, setSearchResult] = useState("")
     const [allData, setAllData] = useState(data)
@@ -27,7 +27,7 @@ const Table = ({ data, toggleAdd, handleUpdate }) => {
             confirmButtonText: "Yes, Delete it!"
         }).then(async (result) => {
             if (result.isConfirmed) {
-                await deleteUser(data, token)
+                await deleteSupplier(data, token)
             }
         });
     }

@@ -102,7 +102,6 @@ const AddNewSupplier = () => {
                     <div>
                         {toggleAdd ? (
                             <EmbededModal
-                                isOpen={toggleAdd}
                                 setIsOpen={setToggleAdd}
                                 setNewSupplier={setNewSupplier}
                                 newSupplier={newSupplier}

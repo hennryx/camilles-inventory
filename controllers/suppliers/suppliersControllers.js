@@ -2,8 +2,7 @@ const Supplier = require("../../models/Supplier/SupplierSchema");
 
 exports.getAllSuppliers = async (req, res) => {
     try {
-        const supplier = await Supplier.find();
-        /* const supplier = await Supplier.find().populate('products'); */
+        const supplier = await Supplier.find().populate('products');
 
         res.status(200).json({
             success: true,
@@ -11,7 +10,7 @@ exports.getAllSuppliers = async (req, res) => {
             data: supplier
         });
     } catch (error) {
-        res.status(500).json({
+        res.status(500).json({ 
             success: false,
             message: error.message
         });
