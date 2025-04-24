@@ -31,11 +31,13 @@ const PurchaseSchema = new mongoose.Schema({
         },
 
         expiryDate: { 
-            type: Date 
+            type: Date,
+            required: true
         },
 
         batchNumber: { 
-            type: String 
+            type: String
+            // Now optional since we'll generate it
         }
     }],
 
@@ -54,6 +56,12 @@ const PurchaseSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'User' 
     },
+    
+    status: {
+        type: String,
+        enum: ['pending', 'processed'],
+        default: 'pending'
+    }
 
 }, {
     timestamps: true

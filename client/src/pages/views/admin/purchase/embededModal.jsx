@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import useAuthStore from '../../../../services/stores/authStore';
-import AddressSelector from '../../../../components/address';
 import Swal from 'sweetalert2';
 import usePurchaseStore from '../../../../services/stores/purchase/purchaseStore';
 import useSuppliersStore from '../../../../services/stores/suppliers/suppliersStore';
+import { Checkbox } from '@headlessui/react';
+import { ENDPOINT } from '../../../../services/utilities';
 
 const EmbededModal = ({ setIsOpen, setNewPurchase, newPurchase, isUpdate, setIsUpdate, temp }) => {
     const { addPurchase, updatePurchase } = usePurchaseStore();
@@ -21,8 +22,6 @@ const EmbededModal = ({ setIsOpen, setNewPurchase, newPurchase, isUpdate, setIsU
 
     useEffect(() => {
         if (SuppliersData) {
-            console.log(SuppliersData);
-
             setSuppliers(SuppliersData)
         }
     }, [SuppliersData])
@@ -35,11 +34,20 @@ const EmbededModal = ({ setIsOpen, setNewPurchase, newPurchase, isUpdate, setIsU
     }
 
     useEffect(() => {
-        if(Object.keys(newPurchase).length > 0) {
+        if (Object.keys(newPurchase).length > 0) {
             const selectedSupplier = suppliers.find(sup => sup._id === newPurchase.supplier);
-            console.log("haha", selectedSupplier);
-            
-            setSupBasicInfo(selectedSupplier)
+            if (selectedSupplier) {
+                const { firstname, middlename, lastname, companyAddress, ...res } = selectedSupplier;
+
+                const { street, barangay, municipality, province } = companyAddress;
+                const address = `Street ${street}, Brgy. ${barangay}, ${municipality}, ${province}`;
+
+                const name = firstname + " " + middlename + " " + lastname;
+
+                console.log(res);
+
+                setSupBasicInfo({ ...res, name, address })
+            }
         }
     }, [newPurchase])
 
@@ -47,7 +55,7 @@ const EmbededModal = ({ setIsOpen, setNewPurchase, newPurchase, isUpdate, setIsU
         e.preventDefault();
         console.log(newPurchase)
 
-        let { supplier, purchaseDate, totalAmount, paymentDetails, items, createdBy } = newPurchase;
+        let { supplier, purchaseDate, paymentDetails, items, createdBy } = newPurchase;
 
         if (
             supplier.trim() === "" ||
@@ -130,7 +138,6 @@ const EmbededModal = ({ setIsOpen, setNewPurchase, newPurchase, isUpdate, setIsU
                             {suppliers.map((sup, i) => (
                                 <option key={i} value={sup._id}>{sup.companyName}</option>
                             ))}
-                            {/* navigate to Suppliers if click more or add */}
                         </select>
                     </div>
 
@@ -140,7 +147,7 @@ const EmbededModal = ({ setIsOpen, setNewPurchase, newPurchase, isUpdate, setIsU
                         </label>
                         <div className="mt-2">
                             <input
-                                value={`${supBasicInfo?.firstname} ${supBasicInfo?.middlename} ${supBasicInfo?.lastname}` || ""}
+                                value={supBasicInfo.name || ""}
                                 disabled={true}
                                 type="text"
                                 autoComplete="off"
@@ -170,7 +177,7 @@ const EmbededModal = ({ setIsOpen, setNewPurchase, newPurchase, isUpdate, setIsU
                         </label>
                         <div className="mt-2">
                             <input
-                                value={`Street ${supBasicInfo?.companyAddress?.street}, Brgy. ${supBasicInfo?.companyAddress?.barangay}, ${supBasicInfo?.companyAddress?.municipality}, ${supBasicInfo?.companyAddress?.province}` || ""}
+                                value={supBasicInfo.address || ""}
                                 disabled={true}
                                 type="text"
                                 autoComplete="off"
@@ -185,7 +192,29 @@ const EmbededModal = ({ setIsOpen, setNewPurchase, newPurchase, isUpdate, setIsU
                 <div className="border-b border-gray-900/10 pb-2">
                     <h2 className="text-base/7 font-semibold text-gray-900">Company Products</h2>
                     <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-6">
-                            
+                        {supBasicInfo?.products?.length > 0 && supBasicInfo.products.map((item, i) => (
+
+                            <div className='bg-gray-100 rounded-md flex justify-start items-start p-2 gap-2' key={i}>
+                                <Checkbox
+                                    className="group block size-4 rounded-full bg-white border border-gray-400 data-[checked]:bg-blue-200"
+                                    checked={true}
+                                >
+                                    <svg className="stroke-blue-800 opacity-0 group-data-[checked]:opacity-100" viewBox="0 0 14 14" fill="none">
+                                        <path d="M3 8L6 11L11 3.5" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                                    </svg>
+                                </Checkbox>
+
+                                <div className="flex flex-col gap-1">
+                                    <img src={`${ENDPOINT}/assets/products/${item.image}`} alt="product" className='h-15'/>
+                                    <div>
+                                        <p className='text-sm text-gray-500'>Name: <span className='text-gray-800'>{item.productName}</span></p>
+                                        <p className='text-sm text-gray-500'>Size: <span className='text-gray-800'>{item.unitSize} {item.unit}</span></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                        ))}
+
                     </div>
                 </div>
 

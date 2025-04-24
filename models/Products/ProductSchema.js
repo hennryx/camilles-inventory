@@ -6,27 +6,24 @@ const ProductsSchema = new mongoose.Schema({
 		required: [true, 'Please add a product name'],
 		trim: true
 	},
+
 	unit: {
 		type: String,
 		required: true
 	},
+	
 	unitSize: {
 		type: String
 	},
+
 	sellingPrice: {
 		type: Number
 	},
-	inStock: {
-		type: Number,
-		default: 0
-	},
+
 	image: {
 		type: String
 	},
-	minStock : {
-		type: Number,
-		default: 10
-	},
+	
 	createdBy: {
 		type: mongoose.Schema.ObjectId,
 		ref: 'User',

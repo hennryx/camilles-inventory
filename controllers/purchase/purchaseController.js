@@ -1,8 +1,8 @@
-const Purchase = require("../../models/Purchase/PurchaseSchema")
+const ProductBatch = require("../../models/Products/batch")
 
 exports.getPurchases = async (req, res) => {
     try {
-        const purchases = await Purchase.find()
+        const purchases = await ProductBatch.find()
 
         res.status(200).json({
             success: true,
@@ -27,7 +27,7 @@ exports.savePurchase = async (req, res) => {
             });
         }
 
-        const purchase = await Purchase.create(data);
+        const purchase = await ProductBatch.create(data);
 
         if (!purchase) {
             return res.status(400).json({
@@ -69,7 +69,7 @@ exports.updatePurchase = async (req, res) => {
             });
         }
 
-        const purchase = await Purchase.findByIdAndUpdate(data._id, data, { new: true });
+        const purchase = await ProductBatch.findByIdAndUpdate(data._id, data, { new: true });
 
         if (!purchase) {
             return res.status(400).json({
@@ -103,7 +103,7 @@ exports.deletePurchase = async (req, res) => {
             })
         }
 
-        const purchase = await Purchase.findByIdAndDelete(_id);
+        const purchase = await ProductBatch.findByIdAndDelete(_id);
 
         if (!purchase) {
             return res.status(400).json({

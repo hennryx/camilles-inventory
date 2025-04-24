@@ -6,7 +6,7 @@ const Table = () => {
             <table className="table">
                 <caption>
                     <div className='flex justify-between p-4'>
-                        <h3>All Products</h3>
+                        <h3>Transactions</h3>
                         <div>
                             <p>Filter</p>
                         </div>
