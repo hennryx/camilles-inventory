@@ -11,7 +11,7 @@ const TransactionSchema = new mongoose.Schema({
             type: Number,
             required: true
         },
-    
+
     }],
 
     transactionType: {
@@ -23,6 +23,12 @@ const TransactionSchema = new mongoose.Schema({
     notes: {
         type: String
     },
+
+    suppliers: [{
+        type: mongoose.Schema.ObjectId,
+        ref: 'Supplier',
+        required: true
+    }],
 
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,

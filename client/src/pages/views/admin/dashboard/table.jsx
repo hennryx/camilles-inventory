@@ -1,13 +1,170 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import useAuthStore from '../../../../services/stores/authStore';
+import useTransactionsStore from '../../../../services/stores/transactions/transactionStore';
 
 const Table = () => {
+    const [searchResult, setSearchResult] = useState("")
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(5);
+    const { token } = useAuthStore();
+    const { getTransactions, data } = useTransactionsStore();
+    const [allData, setAllData] = useState([])
+
+    useEffect(() => {
+        if (token) {
+            getTransactions(token)
+        }
+    }, [token]);
+
+    useEffect(() => {
+        if (data) {
+            setAllData(data);
+            console.log(data);
+        }
+    }, [data])
+
+    useEffect(() => {
+        if (data || searchTerm) {
+            const term = searchTerm.toLowerCase();
+
+            if (term === "") {
+                setAllData(data);
+                setSearchResult("");
+                return;
+            }
+
+            const filtered = data.filter(item =>
+                item.supplier?.firstname?.toLowerCase().includes(term) ||
+                item.supplier?.middlename?.toLowerCase().includes(term) ||
+                item.supplier?.lastname?.toLowerCase().includes(term)
+            );
+
+            if (filtered.length === 0 && searchTerm) {
+                setSearchResult(`No result found for "${searchTerm}"`)
+            } else {
+                setSearchResult("");
+            }
+            setAllData(filtered);
+            setCurrentPage(1);
+        }
+    }, [searchTerm, data]);
+
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = allData.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(allData.length / itemsPerPage);
+
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
+
+    const handleItemsPerPageChange = (e) => {
+        setItemsPerPage(Number(e.target.value));
+        setCurrentPage(1);
+    };
+
+    const pageNumbers = [];
+    for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+    }
+
+    const renderPagination = () => {
+        return (
+            <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+                <div className="flex flex-1 justify-between sm:hidden">
+                    <button
+                        onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                        disabled={currentPage === 1}
+                        className={`relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                    >
+                        Previous
+                    </button>
+                    <button
+                        onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                        disabled={currentPage === totalPages}
+                        className={`relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                    >
+                        Next
+                    </button>
+                </div>
+                <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                    <div>
+                        <p className="text-sm text-gray-700">
+                            Showing <span className="font-medium">{indexOfFirstItem + 1}</span> to{" "}
+                            <span className="font-medium">
+                                {indexOfLastItem > allData.length ? allData.length : indexOfLastItem}
+                            </span>{" "}
+                            of <span className="font-medium">{allData.length}</span> results
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <select
+                            value={itemsPerPage}
+                            onChange={handleItemsPerPageChange}
+                            className="rounded border-gray-300 text-sm"
+                        >
+                            <option value={5}>5 per page</option>
+                            <option value={10}>10 per page</option>
+                            <option value={25}>25 per page</option>
+                        </select>
+                        <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                            <button
+                                onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                                disabled={currentPage === 1}
+                                className={`relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                            >
+                                <span className="sr-only">Previous</span>
+                                <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
+                                </svg>
+                            </button>
+                            {pageNumbers.map((number) => (
+                                <button
+                                    key={number}
+                                    onClick={() => handlePageChange(number)}
+                                    className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${currentPage === number
+                                        ? 'bg-blue-600 text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
+                                        : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-offset-0'
+                                        }`}
+                                >
+                                    {number}
+                                </button>
+                            ))}
+                            <button
+                                onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                                disabled={currentPage === totalPages}
+                                className={`relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                            >
+                                <span className="sr-only">Next</span>
+                                <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+                                </svg>
+                            </button>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className="overflow-x-auto bg-white shadow-md rounded-2xl">
             <table className="table">
                 <caption>
                     <div className='flex justify-between p-4'>
-                        <h3>Transactions</h3>
-                        <div>
+                        <h3 className='text-xl'>Transactions</h3>
+                        <div className='flex flex-row gap-4 justify-center items-center'>
+                            <label className="input bg-transparent border-2 border-gray-500 rounded-md">
+                                <svg className="h-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g strokeLinejoin="round" strokeLinecap="round" strokeWidth="2.5" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></g></svg>
+                                <input
+                                    type="search"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    placeholder="Search"
+                                />
+                            </label>
                             <p>Filter</p>
                         </div>
                     </div>
@@ -15,32 +172,36 @@ const Table = () => {
                 <thead>
                     <tr className='text-black bg-gray-300'>
                         <th>#</th>
-                        <th>Name</th>
-                        <th>Job</th>
-                        <th>Favorite Color</th>
+                        <th>Transaction</th>
+                        <th>Products</th>
+                        <th>Supplier</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <th>1</th>
-                        <td>Cy Ganderton</td>
-                        <td>Quality Control Specialist</td>
-                        <td>Blue</td>
-                    </tr>
-                    <tr>
-                        <th>2</th>
-                        <td>Hart Hagerty</td>
-                        <td>Desktop Support Technician</td>
-                        <td>Purple</td>
-                    </tr>
-                    <tr>
-                        <th>3</th>
-                        <td>Brice Swyre</td>
-                        <td>Tax Accountant</td>
-                        <td>Red</td>
-                    </tr>
+                <tbody className='text-gray-500'>
+                    {searchResult ? (
+                        <tr>
+                            <td colSpan={5} className='text-center py-4 text-gray-500'>{searchResult}</td>
+                        </tr>
+                    ) : (
+                        currentItems.map((_data, i) => (
+
+                            <tr key={i}>
+                                <th>{i + 1}</th>
+                                <td>{_data.transactionType}</td>
+                                <td className='flex flex-col gap-2'>{_data.products?.map((prd, x) => (
+                                    <p key={x}>
+                                        <span>{prd.product?.productName}</span> <br />
+                                        <span>{prd.product?.unitSize} {prd.product?.unit}</span>
+                                    </p>
+                                ))}
+                                </td>
+                                <td>{_data?.suppliers[0]?.firstname || ""}</td>
+                            </tr>
+                        ))
+                    )}
                 </tbody>
             </table>
+            {!searchResult && renderPagination()}
         </div>
     )
 }

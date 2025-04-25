@@ -204,6 +204,8 @@ exports.deleteProduct = async (req, res) => {
  */
 exports.deductProductStock = async (req, res) => {
     const { products, quantity, ...data } = req.body;
+    console.log(data);
+    
 
     // Input validation
     if (!Array.isArray(products) || products.length === 0) {
@@ -218,6 +220,7 @@ exports.deductProductStock = async (req, res) => {
         const deductionDetails = [];
         const processedProducts = [];
         let remainingToDeduct = 0;
+        const supplierIds = new Set(); 
 
         // Process each product ID in the request
         for (const productId of products) {
@@ -245,6 +248,12 @@ exports.deductProductStock = async (req, res) => {
             for (const batch of batches) {
                 if (remainingToDeduct <= 0) break;
 
+                
+                // Collect supplier ID if available
+                if (batch.supplier) {
+                    supplierIds.add(batch.supplier.toString());
+                }
+
                 for (let i = 0; i < batch.products.length; i++) {
                     const item = batch.products[i];
 
@@ -267,7 +276,7 @@ exports.deductProductStock = async (req, res) => {
                                 productId,
                                 batchId: batch._id,
                                 expiryDate: item.expiryDate,
-                                deducted: deduction
+                                deducted: deduction,
                             });
                         }
 
@@ -284,7 +293,7 @@ exports.deductProductStock = async (req, res) => {
             if (deductedFromThisProduct > 0) {
                 processedProducts.push({
                     product: productId,
-                    quantity: deductedFromThisProduct
+                    quantity: deductedFromThisProduct,
                 });
             }
 
@@ -309,7 +318,8 @@ exports.deductProductStock = async (req, res) => {
         await Transaction.create({
             ...data,
             products: processedProducts,
-            deductionDetails
+            suppliers: Array.from(supplierIds),
+            deductionDetails,
         });
 
         const _products = await Product.find()

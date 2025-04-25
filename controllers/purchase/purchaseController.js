@@ -30,7 +30,7 @@ exports.savePurchase = async (req, res) => {
             });
         }
 
-        const { products, ...rest } = data;
+        const { products, supplier, ...rest } = data;
 
         const updated = products.map((item) => ({
             product: item.id,
@@ -38,7 +38,7 @@ exports.savePurchase = async (req, res) => {
             ...item
         }));
 
-        const newData = { products: updated, ...rest };
+        const newData = { products: updated, supplier, ...rest };
         
         const purchase = await ProductBatch.create(newData);
 
@@ -54,7 +54,9 @@ exports.savePurchase = async (req, res) => {
             quantity: item.stock,
         }));
 
-        const transactionData = { products: updatedTransactionPrd, transactionType: "PURCHASE", ...rest };
+        console.log(rest);
+        
+        const transactionData = { products: updatedTransactionPrd, transactionType: "PURCHASE", suppliers: Array.of(supplier) ,...rest, };
         await Transaction.create(transactionData)
 
         res.status(201).json({
