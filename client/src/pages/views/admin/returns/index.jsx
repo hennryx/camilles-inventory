@@ -11,7 +11,7 @@ const Returns = () => {
             </div>
 
             <div>
-                <Table />
+              <h1>This page is currently on development!</h1>
             </div>
 
         </div>
