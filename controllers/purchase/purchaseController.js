@@ -1,4 +1,5 @@
-const ProductBatch = require("../../models/Products/batch")
+const ProductBatch = require("../../models/Products/batch");
+const Transaction = require("../../models/Transaction/TransactionSchema");
 
 exports.getPurchases = async (req, res) => {
     try {
@@ -47,6 +48,14 @@ exports.savePurchase = async (req, res) => {
                 message: "Failed to save purchase."
             });
         }
+
+        const updatedTransactionPrd = products.map((item) => ({
+            product: item.id,
+            quantity: item.stock,
+        }));
+
+        const transactionData = { products: updatedTransactionPrd, transactionType: "PURCHASE", ...rest };
+        await Transaction.create(transactionData)
 
         res.status(201).json({
             success: true,

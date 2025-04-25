@@ -6,8 +6,10 @@ import useAuthStore from '../../../../services/stores/authStore';
 
 const ReduceDrawer = ({ reduceProduct, onClose }) => {
     const { token, auth } = useAuthStore();
-    const { addProduct } = useProductsStore();
-    const { image, productName, sellingPrice, unit, unitSize, inStock, _id } = reduceProduct;
+    const { deducProduct } = useProductsStore();
+    const inStock = reduceProduct.reduce((sum, item) => sum + item.inStock, 0);
+
+    console.log("reduceProduct", reduceProduct);
 
     const [formData, setFormData] = useState({
         quantity: 1,
@@ -50,8 +52,7 @@ const ReduceDrawer = ({ reduceProduct, onClose }) => {
         return newErrors;
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async () => {
 
         const validationErrors = validateForm();
         if (Object.keys(validationErrors).length > 0) {
@@ -59,20 +60,25 @@ const ReduceDrawer = ({ reduceProduct, onClose }) => {
             return;
         }
 
-        const transactionData = {
-            product: _id,
+        let transactionData = {}
+        let { quantity, ...res } = formData;
+
+        transactionData = {
+            products: reduceProduct.map(item => item._id),
             createdBy: auth._id,
-            ...formData,
-            quantity: parseInt(formData.quantity),
+            ...res,
+            quantity: Number(quantity),
         };
 
-        await addProduct(transactionData, token)
+        console.log(transactionData);
+        
+        await deducProduct(transactionData, token)
     };
 
 
     const renderProductDetails = () => {
 
-        if (Array.isArray(reduceProduct) && reduceProduct.length > 1) {
+        if (reduceProduct.length > 1) {
             return (
                 <>
                     <div className="h-32 w-32 overflow-hidden rounded border border-gray-300 bg-gray-100 flex items-center justify-center">
@@ -103,7 +109,7 @@ const ReduceDrawer = ({ reduceProduct, onClose }) => {
                         <tbody className='text-gray-500'>
                             {reduceProduct.map((item, i) => (
                                 <tr key={i} className='border-b-2 border-gray-200'>
-                                    <td>{i+1}</td>
+                                    <td>{i + 1}</td>
                                     <td>{item.productName}</td>
                                     <td>{item.sellingPrice}</td>
                                     <td>{item.unitSize} {item.unit}</td>
@@ -170,7 +176,7 @@ const ReduceDrawer = ({ reduceProduct, onClose }) => {
             <div className="flex flex-col items-center p-4 gap-4">
                 {renderProductDetails()}
 
-                <form onSubmit={handleSubmit} className="w-full space-y-4">
+                <div className="w-full space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700">
                             Transaction Type
@@ -232,13 +238,13 @@ const ReduceDrawer = ({ reduceProduct, onClose }) => {
                             Cancel
                         </button>
                         <button
-                            /* type="submit" */
+                            onClick={() => handleSubmit()}
                             className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
                         >
                             Record Transaction
                         </button>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     );

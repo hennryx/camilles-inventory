@@ -15,6 +15,9 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, setToggleReduce, set
     const [itemsPerPage, setItemsPerPage] = useState(5);
     const [selectedPrd, setSelectedPrd] = useState([])
 
+    console.log("-----------", data, data.length);
+    
+
     const handleDelete = (e, _id) => {
         e.preventDefault();
 

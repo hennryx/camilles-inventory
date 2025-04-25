@@ -105,6 +105,28 @@ const useProductsStore = create((set, get) => ({
         }
     },
 
+    deducProduct: async (data, token) => {
+        set({ isLoading: true, message: '', isSuccess: false });
+
+        try {
+            const res = await axiosTools.saveData("products/deduct", data, token)
+
+            set({
+                data: res.data,
+                message: res.message,
+                isSuccess: res.success,
+                isLoading: false
+            });
+
+        } catch (error) {
+            set({
+                message: error,
+                isSuccess: false,
+                isLoading: false
+            })
+        }
+    },
+
     reset: () => {
         set({
             message: '',

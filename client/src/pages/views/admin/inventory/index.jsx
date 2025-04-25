@@ -50,20 +50,26 @@ const Inventory = () => {
     useEffect(() => {
         if (data) {
             setProductsdata(data);
-            console.log(productInfo);
-
             setStocksInfo(productInfo);
         }
     }, [data])
 
     useEffect(() => {
+        console.log("--");
+        
         if (isSuccess && message) {
+            console.log("--3");
+            console.log("--3", data);
+
             setToggleAdd(false)
             setToggleReduce(false)
 
             setNewProduct(info)
 
-            if (product && isUpdate) {
+            if(data) {
+                setProductsdata(data);
+                setStocksInfo(productInfo);
+            }else if (product && isUpdate) {
                 const updatedProduct = productsData.map(u =>
                     u._id === product._id ? product : u
                 );
@@ -98,7 +104,7 @@ const Inventory = () => {
             });
         }
 
-    }, [message, isSuccess, product])
+    }, [message, isSuccess, product, data])
 
     return (
         <div className='container'>
