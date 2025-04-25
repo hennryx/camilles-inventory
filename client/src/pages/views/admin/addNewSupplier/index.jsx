@@ -44,7 +44,11 @@ const AddNewSupplier = () => {
 
     const handleUpdate = (supplier) => {
         setToggleAdd(true);
-        setNewSupplier(supplier);
+        console.log(supplier);
+        const { products, ...res } = supplier;
+        const productsIds = products.map(item => item._id)
+
+        setNewSupplier({...res, products: productsIds});
         setIsUpdate(true);
     }
 

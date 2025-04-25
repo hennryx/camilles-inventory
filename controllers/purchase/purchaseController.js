@@ -3,6 +3,8 @@ const ProductBatch = require("../../models/Products/batch")
 exports.getPurchases = async (req, res) => {
     try {
         const purchases = await ProductBatch.find()
+        .populate('supplier')
+        .populate('products.product'); 
 
         res.status(200).json({
             success: true,
@@ -27,7 +29,17 @@ exports.savePurchase = async (req, res) => {
             });
         }
 
-        const purchase = await ProductBatch.create(data);
+        const { products, ...rest } = data;
+
+        const updated = products.map((item) => ({
+            product: item.id,
+            remainingStock: item.stock,
+            ...item
+        }));
+
+        const newData = { products: updated, ...rest };
+        
+        const purchase = await ProductBatch.create(newData);
 
         if (!purchase) {
             return res.status(400).json({
@@ -36,11 +48,10 @@ exports.savePurchase = async (req, res) => {
             });
         }
 
-
         res.status(201).json({
             success: true,
             message: "Purchase saved successfully!",
-            purchase
+            purchase,
         });
 
     } catch (error) {

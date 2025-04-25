@@ -36,8 +36,6 @@ const EmbededModal = ({ setIsOpen, setNewSupplier, newSupplier, isUpdate, setIsU
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log(newSupplier)
-
         const { firstname, lastname, contactNumber, companyAddress, companyName } = newSupplier;
         const { region, province, municipality, barangay, zipcode } = companyAddress;
 

@@ -15,7 +15,6 @@ const info = {
     unit: "",
     unitSize: "",
     sellingPrice: "",
-    inStock: 0,
     createdby: "",
     minStock: 10,
 }

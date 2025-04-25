@@ -8,9 +8,7 @@ import usePurchaseStore from '../../../../services/stores/purchase/purchaseStore
 const info = {
     supplier: "",
     purchaseDate: "",
-    totalAmount: "",
-    paymentDetails: "",
-    items: [],
+    products: [],
     createdBy: "",
 }
 
@@ -26,7 +24,7 @@ const Purchase = () => {
         if (token) {
             getPurchases(token); 
         }
-    }, [token]);
+    }, [token]);   
 
     useEffect(() => {
         if (data) {
@@ -36,16 +34,15 @@ const Purchase = () => {
 
     const handleUpdate = (purchase) => {
         setToggleAdd(true);
-        setNewPurchase(purchase);
+        let { supplier, ...res} = purchase;
+        setNewPurchase({...res, supplier: supplier._id});
         setIsUpdate(true);
     }
 
     useEffect(() => {
         if (isSuccess && message) {
             setToggleAdd(false);
-
             setNewPurchase(info);
-
             if (purchase && isUpdate) {
                 const updatedPurchase = purchaseData.map(u =>
                     u._id === purchase._id ? purchase : u

@@ -1,11 +1,6 @@
 const mongoose = require("mongoose");
 
 const productBatchSchema = new mongoose.Schema({
-    product: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'Product',
-        required: true
-    },
 
     supplier: {
         type: mongoose.Schema.ObjectId,
@@ -13,20 +8,33 @@ const productBatchSchema = new mongoose.Schema({
         required: true
     },
 
-	stock: {
-		type: Number,
-        required: true
-	},
-	
-    expiryDate: { 
-        type: Date,
-        required: true
-    },
+    products: [{
+        product: {
+            type: mongoose.Schema.ObjectId,
+            ref: 'Product',
+            required: true
+        },
 
-    price: { 
-        type: Number, 
-        required: true 
-    },
+        stock: {
+            type: Number,
+            required: true
+        },
+
+        remainingStock: {
+            type: Number,
+            required: true
+        },
+        
+        expiryDate: { 
+            type: Date,
+            required: true
+        },
+    
+        price: { 
+            type: Number, 
+            required: true 
+        },
+    }],
 
     purchaseDate: { 
         type: Date, 

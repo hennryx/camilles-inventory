@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { IoIosAdd } from "react-icons/io";
 import Swal from 'sweetalert2';
-import useUsersStore from '../../../../services/stores/users/usersStore';
 import useAuthStore from '../../../../services/stores/authStore';
+import usePurchaseStore from '../../../../services/stores/purchase/purchaseStore';
+import toDate from '../../../../services/utilities/convertDate';
 
 const Table = ({ data, toggleAdd, handleUpdate }) => {
-    const { deleteUser } = useUsersStore();
+    const { deletePurchase } = usePurchaseStore();
     const { token } = useAuthStore()
     const [searchResult, setSearchResult] = useState("")
     const [allData, setAllData] = useState(data)
@@ -27,7 +28,7 @@ const Table = ({ data, toggleAdd, handleUpdate }) => {
             confirmButtonText: "Yes, Delete it!"
         }).then(async (result) => {
             if (result.isConfirmed) {
-                await deleteUser(data, token)
+                await deletePurchase(token, data)
             }
         });
     }
@@ -40,12 +41,11 @@ const Table = ({ data, toggleAdd, handleUpdate }) => {
                 setSearchResult("");
                 return;
             }
-
-            const filtered = data.filter(user =>
-                user.firstName?.toLowerCase().includes(term) ||
-                user.middleName?.toLowerCase().includes(term) ||
-                user.lastName?.toLowerCase().includes(term) ||
-                user.email?.toLowerCase().includes(term)
+            
+            const filtered = data.filter(item =>
+                item.supplier?.firstname?.toLowerCase().includes(term) ||
+                item.supplier?.middlename?.toLowerCase().includes(term) ||
+                item.supplier?.lastname?.toLowerCase().includes(term)
             );
 
             if (filtered.length === 0 && searchTerm) {
@@ -186,9 +186,10 @@ const Table = ({ data, toggleAdd, handleUpdate }) => {
                 <thead>
                     <tr className='text-black bg-gray-300'>
                         <th>#</th>
-                        <th>Name</th>
-                        <th>Phone number</th>
-                        <th>Company</th>
+                        <th>Products</th>
+                        <th>Supplier name</th>
+                        <th>Supplier company</th>
+                        <th>Purchase date</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -200,10 +201,32 @@ const Table = ({ data, toggleAdd, handleUpdate }) => {
                     ) : (
                         currentItems.map((_data, i) => (
                             <tr key={i}>
-                                <th>{indexOfFirstItem + i + 1}</th>
-                                <td>{_data.firstname} {_data.middlename} {_data.lastname}</td>
-                                <td>{_data.contactNumber}</td>
-                                <td>{_data.companyName}</td>
+                                <td>{indexOfFirstItem + i + 1}</td>
+                                <td>
+                                    {_data.products?.map((item, index) => (
+                                        <div key={index} className='border-b-1 border-gray-300 flex flex-col'>
+                                            <p className='flex gap-2'>
+                                                <span className='text-gray-400'>
+                                                    product: 
+                                                </span>
+                                                <span className='text-gray-500'>
+                                                    {item.product?.productName}
+                                                </span>
+                                            </p>
+                                            <p className='flex gap-2'>
+                                            <span className='text-gray-400'>
+                                                stock:
+                                            </span>
+                                            <span className='text-gray-500'>
+                                                {item?.stock}
+                                            </span>
+                                            </p>
+                                        </div>
+                                    ))}
+                                </td>
+                                <td>{_data.supplier?.firstname}</td>
+                                <td>{_data.supplier?.companyName}</td>
+                                <td>{toDate(_data.purchaseDate)}</td>
                                 <td className='flex flex-row justify-start items-center gap-2 p-2'>
                                     <button
                                         className='p-2 bg-blue-200 text-blue-800 rounded-md hover:bg-blue-300'

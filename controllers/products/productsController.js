@@ -1,9 +1,8 @@
-// controllers/productController.js
 const Product = require('../../models/Products/ProductSchema');
+const ProductBatch = require("../../models/Products/batch")
 const path = require('path');
 const fs = require('fs');
 
-// Get all products with pagination
 exports.getAllProducts = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
@@ -11,7 +10,6 @@ exports.getAllProducts = async (req, res) => {
         const skip = (page - 1) * limit;
         const search = req.query.search || '';
 
-        // Create search query
         let query = {};
         if (search) {
             query = {
@@ -22,21 +20,36 @@ exports.getAllProducts = async (req, res) => {
             };
         }
 
-        // Get total count for pagination
         const totalItems = await Product.countDocuments(query);
 
-        // Get paginated data
         const products = await Product.find(query)
             .skip(skip)
             .limit(limit)
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .lean();
+        const stockData = await ProductBatch.aggregate([
+            { $unwind: '$products' },
+            {
+                $group: {
+                    _id: '$products.product',
+                    totalStock: { $sum: '$products.remainingStock' }
+                }
+            }
+        ]);
 
-        const minimumStock = await Product.countDocuments({
-            $expr: { $lte: ["$inStock", "$minStock"] }
+        const stockMap = {};
+        stockData.forEach(item => {
+            stockMap[item._id.toString()] = item.totalStock;
         });
 
-        // Count of out-of-stock products
-        const outStock = await Product.countDocuments({ inStock: 0 });
+        const productsWithStock = products.map(prod => ({
+            ...prod,
+            inStock: stockMap[prod._id.toString()] || 0
+        }));
+
+        const minimumStock = productsWithStock.filter(p => p.inStock <= 10).length;
+
+        const outStock = productsWithStock.filter(p => p.inStock === 0).length;
 
         res.status(200).json({
             success: true,
@@ -45,7 +58,7 @@ exports.getAllProducts = async (req, res) => {
             outStock,
             currentPage: page,
             totalPages: Math.ceil(totalItems / limit),
-            data: products
+            data: productsWithStock
         });
     } catch (error) {
         res.status(500).json({
@@ -149,7 +162,7 @@ exports.updateProduct = async (req, res) => {
 exports.deleteProduct = async (req, res) => {
     try {
         const { _id } = req.body;
-        
+
         const product = await Product.findById(_id);
 
         if (!product) {
