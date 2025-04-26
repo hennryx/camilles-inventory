@@ -6,6 +6,7 @@ import { FaBoxOpen } from "react-icons/fa";
 import Table from './table';
 import useProductsStore from '../../../../services/stores/products/productsStore';
 import useAuthStore from '../../../../services/stores/authStore';
+import BarChart from '../../../../components/barChart';
 
 const Dashboard = () => {
     const { token } = useAuthStore()
@@ -36,7 +37,7 @@ const Dashboard = () => {
                     <Card title={"Recently added products"} count={0} logo={FaCheckDouble} logoColor='text-green-400' />
                     <Card title={"Out of stock products"} count={productInfo.outStock} logo={FaBoxOpen} logoColor='text-yellow-400' />
                 </div>
-                
+                    {/* <BarChart  /> */}
                 <div>
                     <Table />
                 </div>
