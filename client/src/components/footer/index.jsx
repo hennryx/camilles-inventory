@@ -7,15 +7,15 @@ const Footer = ({ className=""}) => {
             <div className={`flex flex-col sm:flex-row w-full p-8 gap-4 sm:gap-8 ${className} ${className.includes('bg-') ? className : 'bg-white'}`}>
                 <div className="flex-1 flex flex-col gap-2">
                     <img alt="Logo" src={Logo} className="h-14 w-16" />
-                    <p className='text-base'>A good place for good moments. 
-                        we offer future </p>
-                    <p className='text-base'>&copy; 2025 Hennryx. All rights reserved. </p>
+                    <p className='text-base'>A place for good drinks. 
+                        we offer refreshing drinks </p>
+                    <p className='text-base'>&copy; 2025 Night Owl. All rights reserved. </p>
                 </div>
                 <div className="flex-1 flex flex-col gap-2">
                     <h1 className='font-bold text-lg'>Contact us</h1>
                     <div className='flex flex-row gap-2 items-center'>
                         <i className="text-base fa-solid fa-map-location-dot"></i>
-                        <p className='text-base'>Address: Brgy Pias, General Tinio Nueva Ecija </p>
+                        <p className='text-base'>Address: Brgy forest, General Tinio Nueva Ecija </p>
                     </div>
                     <div className='flex flex-row gap-2 items-center'>
                         <i className="text-base fa-solid fa-phone"></i>

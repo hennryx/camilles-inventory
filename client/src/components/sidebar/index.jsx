@@ -72,6 +72,10 @@ const Sidebar = ({ role, token }) => {
         });
     }
 
+    const handleNavigateAccount = () => {
+        navigate("/account")
+    }
+
     useEffect(() => {
         if (isSuccess && message === "User logged out") {
             navigate("/");
@@ -197,14 +201,20 @@ const Sidebar = ({ role, token }) => {
                 </div>
                 {isAccOpen && (
                     <>
-                        <div className="py-2 pl-10 pr-4 cursor-pointer  hover:bg-blue-600 w-full flex gap-4 items-center">
+                        <div 
+                            className="py-2 pl-10 pr-4 cursor-pointer hover:bg-blue-600 w-full flex gap-4 items-center"
+                            onClick={handleNavigateAccount}
+                        >
                             <VscAccount className='text-white' size={20} />
                             {!isCollapsed && (
                                 <span className="ml-2 transition-opacity duration-300 text-white">Account</span>
                             )}
                         </div>
 
-                        <div className="py-2 pl-10 pr-4 cursor-pointer  hover:bg-blue-600 w-full flex gap-4 items-center" onClick={(e) => handleLogout(e)}>
+                        <div 
+                            className="py-2 pl-10 pr-4 cursor-pointer  hover:bg-blue-600 w-full flex gap-4 items-center" 
+                            onClick={(e) => handleLogout(e)}
+                        >
                             <IoMdLogOut size={20} className='text-white' />
                             {!isCollapsed && (
                                 <span className="ml-2 transition-opacity duration-300 text-white">Logout</span>
