@@ -13,9 +13,9 @@ const Views = () => {
                 <div className="flex-1 overflow-y-auto p-4 text-black">
                     <Routes />
                 </div>
-                {role && (
+                {/* {role && (
                     <p className='text-black'>Footer</p>
-                )}
+                )} */}
             </main>
         </div>
     );
