@@ -37,9 +37,11 @@ const Dashboard = () => {
                     <Card title={"Recently added products"} count={0} logo={FaCheckDouble} logoColor='text-green-400' />
                     <Card title={"Out of stock products"} count={productInfo.outStock} logo={FaBoxOpen} logoColor='text-yellow-400' />
                 </div>
+                
                 </div>
-                    {/* <BarChart  /> */}
+                    <BarChart  />
                 <div>
+
                 <div>
                     <Table />
                 </div>

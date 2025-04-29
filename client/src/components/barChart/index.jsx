@@ -1,7 +1,10 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import Chart from "chart.js/auto";
 
 const BarChart = () => {
+  const chartRef = useRef(null);
+  const canvasRef = useRef(null);
+
   useEffect(() => {
     const data = [
       { year: 2010, count: 10 },
@@ -13,16 +16,20 @@ const BarChart = () => {
       { year: 2016, count: 28 },
     ];
 
-    new Chart(document.getElementById("salesContainer"), {
+    if (chartRef.current) {
+      chartRef.current.destroy(); // Destroy existing chart before creating a new one
+    }
+
+    chartRef.current = new Chart(canvasRef.current, {
       type: "bar",
       data: {
         labels: data.map((row) => row.year),
         datasets: [
           {
-            label: "Sales", 
-            data: data.map((row) => row.count), // Data for the bars
-            backgroundColor: "rgba(75, 192, 192, 0.2)", // Bar color
-            borderColor: "rgba(75, 192, 192, 1)", // Border color
+            label: "Sales",
+            data: data.map((row) => row.count),
+            backgroundColor: "rgba(75, 192, 192, 0.2)",
+            borderColor: "rgba(75, 192, 192, 1)",
             borderWidth: 1,
           },
         ],
@@ -38,19 +45,15 @@ const BarChart = () => {
       },
     });
 
-    // Cleanup chart on unmount
     return () => {
-      const chartElement = document.getElementById("salesContainer");
-      if (chartElement && chartElement.chart) {
-        chartElement.chart.destroy();
-      }
+      chartRef.current?.destroy(); // Cleanup on unmount
     };
   }, []);
 
   return (
     <div>
       <h2>Chart.js Example with React</h2>
-      <canvas id="salesContainer"></canvas>
+      <canvas ref={canvasRef}></canvas>
     </div>
   );
 };
