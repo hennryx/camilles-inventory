@@ -89,7 +89,7 @@ const EmbededModal = ({ setIsOpen, setNewProduct, newProduct, isUpdate, setIsUpd
         formData.append('sellingPrice', sellingPrice);
         formData.append('inStock', inStock);
         formData.append('minStock', minStock);
-        formData.append('createdBy', auth?._id); // Add creator ID
+        formData.append('createdBy', auth?._id);
 
         if (isUpdate) {
             Swal.fire({

@@ -1,4 +1,3 @@
-// server/models/User.js
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
@@ -42,6 +41,14 @@ const UserSchema = new mongoose.Schema({
         enum: ['ADMIN', 'STAFF'],
         default: 'STAFF'
     },
+    
+    profileImage: {
+        type: String,
+        default: null
+    },
+    
+    resetPasswordToken: String,
+    resetPasswordExpire: Date,
     
     createdAt: {
         type: Date,

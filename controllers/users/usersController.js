@@ -1,5 +1,7 @@
 const Users = require("../../models/Users");
 const bcrypt = require('bcryptjs');
+const path = require('path');
+const fs = require('fs');
 
 exports.getAllUsers = async (req, res) => {
     try {
@@ -58,7 +60,6 @@ exports.updateUser = async (req, res) => {
     }
 }
 
-
 exports.deleteUser = async (req, res) => {
     try {
         const {_id} = req.body;
@@ -96,3 +97,132 @@ exports.deleteUser = async (req, res) => {
         });
     }
 }
+
+// Update user profile
+exports.updateProfile = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const { firstname, middlename, lastname, email } = req.body;
+        
+        // Find the user
+        const user = await Users.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+        
+        // Update profile fields
+        if (firstname) user.firstname = firstname;
+        if (middlename !== undefined) user.middlename = middlename;
+        if (lastname) user.lastname = lastname;
+        
+        // Check if email is being updated and is different
+        if (email && email !== user.email) {
+            // Check if new email already exists
+            const existingUser = await Users.findOne({ email });
+            if (existingUser) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Email already in use'
+                });
+            }
+            
+            user.email = email;
+        }
+        
+        // Handle profile image upload
+        if (req.file) {
+            // Delete previous profile image if exists
+            if (user.profileImage) {
+                const oldImagePath = path.join(__dirname, '../../assets/profiles', user.profileImage);
+                if (fs.existsSync(oldImagePath)) {
+                    fs.unlinkSync(oldImagePath);
+                }
+            }
+            
+            // Save new profile image
+            user.profileImage = req.file.filename;
+        }
+        
+        await user.save();
+        
+        res.status(200).json({
+            success: true,
+            message: 'Profile updated successfully',
+            user: {
+                _id: user._id,
+                firstname: user.firstname,
+                middlename: user.middlename,
+                lastname: user.lastname,
+                email: user.email,
+                role: user.role,
+                profileImage: user.profileImage
+            }
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+// Update password
+exports.updatePassword = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const { currentPassword, newPassword } = req.body;
+        
+        // Validate input
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please provide current and new password'
+            });
+        }
+        
+        // Validate password requirements
+        if (newPassword.length < 8) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password must be at least 8 characters long'
+            });
+        }
+        
+        // Find the user with password
+        const user = await Users.findById(userId).select('+password');
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+        
+        // Check if current password is correct
+        const isMatch = await user.matchPassword(currentPassword);
+        if (!isMatch) {
+            return res.status(401).json({
+                success: false,
+                message: 'Current password is incorrect'
+            });
+        }
+        
+        // Update password
+        user.password = newPassword;
+        await user.save();
+        
+        res.status(200).json({
+            success: true,
+            message: 'Password updated successfully'
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};

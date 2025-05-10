@@ -1,13 +1,12 @@
 // client/src/pages/views/admin/reports/index.jsx
 import React, { useState, useEffect } from 'react';
-import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import { FaFilePdf, FaRegListAlt } from 'react-icons/fa';
 import useAuthStore from '../../../../services/stores/authStore';
 import useProductsStore from '../../../../services/stores/products/productsStore';
 import useTransactionsStore from '../../../../services/stores/transactions/transactionStore';
 import usePurchaseStore from '../../../../services/stores/purchase/purchaseStore';
-import ReportFilter from './reportFilter';
-import { FaFilePdf, FaFileExcel, FaRegListAlt } from 'react-icons/fa';
+import { toast } from 'react-toastify';
+import html2pdf from 'html2pdf.js';
 
 const Reports = () => {
     const { token } = useAuthStore();
@@ -60,139 +59,215 @@ const Reports = () => {
         }
     };
     
+    const handleDateRangeChange = (e) => {
+        const { name, value } = e.target;
+        setDateRange(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+    
     const generatePDF = () => {
-        const doc = new jsPDF();
-        const title = `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report`;
-        const dateStr = `${dateRange.startDate} to ${dateRange.endDate}`;
+        // Create a temporary element to render the report
+        const element = document.createElement('div');
+        element.style.padding = '20px';
+        element.style.fontFamily = 'Arial, sans-serif';
         
-        // Add title
-        doc.setFontSize(18);
-        doc.text(title, 14, 22);
+        // Add title and date range
+        const title = document.createElement('h1');
+        title.textContent = `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report`;
+        title.style.color = '#4154F1';
+        title.style.marginBottom = '10px';
+        element.appendChild(title);
         
-        // Add date range
-        doc.setFontSize(11);
-        doc.text(`Date Range: ${dateStr}`, 14, 30);
+        const dateInfo = document.createElement('p');
+        dateInfo.textContent = `Date Range: ${new Date(dateRange.startDate).toLocaleDateString()} to ${new Date(dateRange.endDate).toLocaleDateString()}`;
+        dateInfo.style.marginBottom = '20px';
+        element.appendChild(dateInfo);
         
-        let tableData = [];
+        // Create table
+        const table = document.createElement('table');
+        table.style.width = '100%';
+        table.style.borderCollapse = 'collapse';
+        
+        // Create table header
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        headerRow.style.backgroundColor = '#4154F1';
+        headerRow.style.color = 'white';
+        
+        // Define columns based on report type
         let columns = [];
         
         if (reportType === 'sales') {
-            columns = [
-                { header: 'Date', dataKey: 'date' },
-                { header: 'Product', dataKey: 'product' },
-                { header: 'Quantity', dataKey: 'quantity' },
-                { header: 'Total', dataKey: 'total' }
-            ];
-            
-            tableData = filteredData.map(item => {
-                return {
-                    date: new Date(item.createdAt).toLocaleDateString(),
-                    product: item.products.map(p => p.product?.productName).join(', '),
-                    quantity: item.products.map(p => p.quantity).reduce((a, b) => a + b, 0),
-                    total: `₱${item.products.map(p => p.quantity * (p.product?.sellingPrice || 0)).reduce((a, b) => a + b, 0)}`
-                };
-            });
+            columns = ['Date', 'Product', 'Quantity', 'Total'];
         } else if (reportType === 'purchases') {
-            columns = [
-                { header: 'Date', dataKey: 'date' },
-                { header: 'Supplier', dataKey: 'supplier' },
-                { header: 'Products', dataKey: 'products' },
-                { header: 'Total Items', dataKey: 'totalItems' }
-            ];
-            
-            tableData = filteredData.map(item => {
-                return {
-                    date: new Date(item.purchaseDate).toLocaleDateString(),
-                    supplier: item.supplier?.companyName || 'N/A',
-                    products: item.products?.map(p => p.product?.productName).join(', '),
-                    totalItems: item.products?.length || 0
-                };
-            });
+            columns = ['Date', 'Supplier', 'Products', 'Total Items'];
+        } else if (reportType === 'returns') {
+            columns = ['Date', 'Product', 'Quantity', 'Reason'];
         } else if (reportType === 'inventory') {
-            columns = [
-                { header: 'Product Name', dataKey: 'name' },
-                { header: 'Size', dataKey: 'size' },
-                { header: 'Price', dataKey: 'price' },
-                { header: 'In Stock', dataKey: 'stock' }
-            ];
-            
-            tableData = filteredData.map(item => {
-                return {
-                    name: item.productName,
-                    size: `${item.unitSize} ${item.unit}`,
-                    price: `₱${item.sellingPrice}`,
-                    stock: item.inStock || 0
-                };
-            });
+            columns = ['Product Name', 'Size', 'Price', 'In Stock'];
         }
         
-        doc.autoTable({
-            head: [columns.map(col => col.header)],
-            body: tableData.map(item => columns.map(col => item[col.dataKey])),
-            startY: 40,
-            theme: 'grid',
-            styles: { fontSize: 8, cellPadding: 2 },
-            headStyles: { fillColor: [65, 84, 241] }
+        columns.forEach(column => {
+            const th = document.createElement('th');
+            th.textContent = column;
+            th.style.padding = '8px';
+            th.style.textAlign = 'left';
+            headerRow.appendChild(th);
         });
         
-        doc.save(`${reportType}_report_${new Date().toISOString().slice(0, 10)}.pdf`);
-    };
-    
-    const exportToCSV = () => {
-        let csvContent = '';
-        let headers = [];
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
         
+        // Create table body
+        const tbody = document.createElement('tbody');
+        
+        filteredData.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.style.backgroundColor = index % 2 === 0 ? '#f9f9f9' : 'white';
+            
+            // Add cells based on report type
+            if (reportType === 'sales') {
+                const dateCell = document.createElement('td');
+                dateCell.textContent = new Date(item.createdAt).toLocaleDateString();
+                row.appendChild(dateCell);
+                
+                const productCell = document.createElement('td');
+                productCell.textContent = item.products.map(p => p.product?.productName).join(', ');
+                row.appendChild(productCell);
+                
+                const quantityCell = document.createElement('td');
+                quantityCell.textContent = item.products.map(p => p.quantity).reduce((a, b) => a + b, 0);
+                row.appendChild(quantityCell);
+                
+                const totalCell = document.createElement('td');
+                totalCell.textContent = `₱${item.products.map(p => p.quantity * (p.product?.sellingPrice || 0)).reduce((a, b) => a + b, 0)}`;
+                row.appendChild(totalCell);
+            } else if (reportType === 'purchases') {
+                const dateCell = document.createElement('td');
+                dateCell.textContent = new Date(item.purchaseDate).toLocaleDateString();
+                row.appendChild(dateCell);
+                
+                const supplierCell = document.createElement('td');
+                supplierCell.textContent = item.supplier?.companyName || 'N/A';
+                row.appendChild(supplierCell);
+                
+                const productsCell = document.createElement('td');
+                productsCell.textContent = item.products?.map(p => p.product?.productName).join(', ');
+                row.appendChild(productsCell);
+                
+                const totalItemsCell = document.createElement('td');
+                totalItemsCell.textContent = item.products?.length || 0;
+                row.appendChild(totalItemsCell);
+            } else if (reportType === 'returns') {
+                const dateCell = document.createElement('td');
+                dateCell.textContent = new Date(item.createdAt).toLocaleDateString();
+                row.appendChild(dateCell);
+                
+                const productCell = document.createElement('td');
+                productCell.textContent = item.products.map(p => p.product?.productName).join(', ');
+                row.appendChild(productCell);
+                
+                const quantityCell = document.createElement('td');
+                quantityCell.textContent = item.products.map(p => p.quantity).reduce((a, b) => a + b, 0);
+                row.appendChild(quantityCell);
+                
+                const reasonCell = document.createElement('td');
+                reasonCell.textContent = item.notes || 'N/A';
+                row.appendChild(reasonCell);
+            } else if (reportType === 'inventory') {
+                const nameCell = document.createElement('td');
+                nameCell.textContent = item.productName;
+                row.appendChild(nameCell);
+                
+                const sizeCell = document.createElement('td');
+                sizeCell.textContent = `${item.unitSize} ${item.unit}`;
+                row.appendChild(sizeCell);
+                
+                const priceCell = document.createElement('td');
+                priceCell.textContent = `₱${item.sellingPrice}`;
+                row.appendChild(priceCell);
+                
+                const stockCell = document.createElement('td');
+                stockCell.textContent = item.inStock || 0;
+                row.appendChild(stockCell);
+            }
+            
+            // Style the cells
+            Array.from(row.cells).forEach(cell => {
+                cell.style.padding = '8px';
+                cell.style.borderBottom = '1px solid #ddd';
+            });
+            
+            tbody.appendChild(row);
+        });
+        
+        table.appendChild(tbody);
+        element.appendChild(table);
+        
+        // Generate summary section
+        const summary = document.createElement('div');
+        summary.style.marginTop = '20px';
+        summary.style.padding = '10px';
+        summary.style.backgroundColor = '#f5f5f5';
+        summary.style.borderRadius = '5px';
+        
+        const summaryTitle = document.createElement('h2');
+        summaryTitle.textContent = 'Summary';
+        summaryTitle.style.fontSize = '16px';
+        summaryTitle.style.marginBottom = '10px';
+        summary.appendChild(summaryTitle);
+        
+        const summaryContent = document.createElement('p');
         if (reportType === 'sales') {
-            headers = ['Date', 'Product', 'Quantity', 'Total'];
-            csvContent = headers.join(',') + '\n';
-            
-            filteredData.forEach(item => {
-                const row = [
-                    new Date(item.createdAt).toLocaleDateString(),
-                    item.products.map(p => p.product?.productName).join(' | '),
-                    item.products.map(p => p.quantity).reduce((a, b) => a + b, 0),
-                    item.products.map(p => p.quantity * (p.product?.sellingPrice || 0)).reduce((a, b) => a + b, 0)
-                ];
-                csvContent += row.join(',') + '\n';
-            });
+            const totalSales = filteredData.reduce((sum, item) => {
+                return sum + item.products.reduce((productSum, p) => {
+                    return productSum + (p.quantity * (p.product?.sellingPrice || 0));
+                }, 0);
+            }, 0);
+            summaryContent.textContent = `Total Sales: ₱${totalSales.toFixed(2)}`;
         } else if (reportType === 'purchases') {
-            headers = ['Date', 'Supplier', 'Products', 'Total Items'];
-            csvContent = headers.join(',') + '\n';
-            
-            filteredData.forEach(item => {
-                const row = [
-                    new Date(item.purchaseDate).toLocaleDateString(),
-                    item.supplier?.companyName || 'N/A',
-                    item.products?.map(p => p.product?.productName).join(' | '),
-                    item.products?.length || 0
-                ];
-                csvContent += row.join(',') + '\n';
-            });
+            const totalItems = filteredData.reduce((sum, item) => {
+                return sum + (item.products?.length || 0);
+            }, 0);
+            summaryContent.textContent = `Total Items Purchased: ${totalItems}`;
+        } else if (reportType === 'returns') {
+            const totalReturned = filteredData.reduce((sum, item) => {
+                return sum + item.products.reduce((productSum, p) => {
+                    return productSum + p.quantity;
+                }, 0);
+            }, 0);
+            summaryContent.textContent = `Total Items Returned: ${totalReturned}`;
         } else if (reportType === 'inventory') {
-            headers = ['Product Name', 'Size', 'Price', 'In Stock'];
-            csvContent = headers.join(',') + '\n';
-            
-            filteredData.forEach(item => {
-                const row = [
-                    item.productName,
-                    `${item.unitSize} ${item.unit}`,
-                    item.sellingPrice,
-                    item.inStock || 0
-                ];
-                csvContent += row.join(',') + '\n';
-            });
+            const totalStock = filteredData.reduce((sum, item) => {
+                return sum + (item.inStock || 0);
+            }, 0);
+            summaryContent.textContent = `Total Items in Stock: ${totalStock}`;
         }
         
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.setAttribute('href', url);
-        link.setAttribute('download', `${reportType}_report_${new Date().toISOString().slice(0, 10)}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        summary.appendChild(summaryContent);
+        element.appendChild(summary);
+        
+        // Generate PDF from the element
+        const opt = {
+            margin: 10,
+            filename: `${reportType}_report_${new Date().toISOString().slice(0, 10)}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        
+        html2pdf().from(element).set(opt).save()
+            .then(() => {
+                toast.success('PDF generated successfully');
+            })
+            .catch(error => {
+                console.error('PDF generation error:', error);
+                toast.error('Failed to generate PDF');
+            });
     };
-    
+
     return (
         <div className='container'>
             <div className="flex flex-col gap-5 pt-4">
@@ -221,7 +296,33 @@ const Reports = () => {
                             </select>
                         </div>
                         
-                        <ReportFilter dateRange={dateRange} setDateRange={setDateRange} />
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Date Range
+                            </label>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs text-gray-500">From</label>
+                                    <input
+                                        type="date"
+                                        name="startDate"
+                                        value={dateRange.startDate}
+                                        onChange={handleDateRangeChange}
+                                        className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs text-gray-500">To</label>
+                                    <input
+                                        type="date"
+                                        name="endDate"
+                                        value={dateRange.endDate}
+                                        onChange={handleDateRangeChange}
+                                        className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3"
+                                    />
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
                     <div className="flex space-x-4 mb-6">
@@ -231,14 +332,6 @@ const Reports = () => {
                         >
                             <FaFilePdf className="mr-2" />
                             Export as PDF
-                        </button>
-                        
-                        <button
-                            onClick={exportToCSV}
-                            className="inline-flex items-center px-4 py-2 bg-green-100 border border-transparent rounded-md font-semibold text-xs text-green-700 uppercase tracking-widest hover:bg-green-200 active:bg-green-300 focus:outline-none focus:border-green-300 focus:ring ring-green-200 disabled:opacity-25 transition ease-in-out duration-150"
-                        >
-                            <FaFileExcel className="mr-2" />
-                            Export as CSV
                         </button>
                         
                         <button
@@ -354,6 +447,49 @@ const Reports = () => {
                             </tbody>
                         </table>
                     </div>
+                    
+                    {/* Summary section */}
+                    {filteredData.length > 0 && (
+                        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                            <h3 className="text-lg font-semibold mb-2">Summary</h3>
+                            
+                            {reportType === 'sales' && (
+                                <p className="text-gray-700">
+                                    Total Sales: ₱{filteredData.reduce((sum, item) => {
+                                        return sum + item.products.reduce((productSum, p) => {
+                                            return productSum + (p.quantity * (p.product?.sellingPrice || 0));
+                                        }, 0);
+                                    }, 0).toFixed(2)}
+                                </p>
+                            )}
+                            
+                            {reportType === 'purchases' && (
+                                <p className="text-gray-700">
+                                    Total Items Purchased: {filteredData.reduce((sum, item) => {
+                                        return sum + (item.products?.length || 0);
+                                    }, 0)}
+                                </p>
+                            )}
+                            
+                            {reportType === 'returns' && (
+                                <p className="text-gray-700">
+                                    Total Items Returned: {filteredData.reduce((sum, item) => {
+                                        return sum + item.products.reduce((productSum, p) => {
+                                            return productSum + p.quantity;
+                                        }, 0);
+                                    }, 0)}
+                                </p>
+                            )}
+                            
+                            {reportType === 'inventory' && (
+                                <p className="text-gray-700">
+                                    Total Items in Stock: {filteredData.reduce((sum, item) => {
+                                        return sum + (item.inStock || 0);
+                                    }, 0)}
+                                </p>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
