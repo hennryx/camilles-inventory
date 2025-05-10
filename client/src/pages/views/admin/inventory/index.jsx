@@ -55,10 +55,7 @@ const Inventory = () => {
     }, [data])
 
     useEffect(() => {
-        console.log("--");
-        
         if (isSuccess && message) {
-            console.log("--3");
             console.log("--3", data);
 
             setToggleAdd(false)
@@ -117,11 +114,11 @@ const Inventory = () => {
                     <div>
                         <div className="bg-white p-2 shadow-md rounded-md">
                             <div className="flex flex-row gap-4 justify-start items-center px-2">
-                                <Card title={"Total products"} textClr={'text-[#525B5F]'} boxClr={'bg-gray-400'} logo={BsBoxSeam} count={stocksInfo.totalItems} />
+                                <Card title={"Total products"} textClr={'text-[#525B5F]'} boxClr={'bg-gray-400'} logo={BsBoxSeam} count={stocksInfo.totalItems || 0} />
                                 <div className='border-2 border-blue-200 h-10'></div>
-                                <Card title={"Stock out:"} textClr={'text-red-800'} boxClr={'bg-red-200'} logo={FaBoxOpen} count={stocksInfo.outStock} />
+                                <Card title={"Stock out:"} textClr={'text-red-800'} boxClr={'bg-red-200'} logo={FaBoxOpen} count={stocksInfo.outStock || 0} />
                                 <div className='border-2 border-blue-200 h-10'></div>
-                                <Card title={"Stock low:"} textClr={'text-yellow-800'} boxClr={'bg-yellow-200'} logo={BsBoxSeamFill} count={stocksInfo.minStock} />
+                                <Card title={"Stock low:"} textClr={'text-yellow-800'} boxClr={'bg-yellow-200'} logo={BsBoxSeamFill} count={stocksInfo.minStock || 0} />
                             </div>
                         </div>
                     </div>

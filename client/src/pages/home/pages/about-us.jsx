@@ -2,11 +2,11 @@ import React from 'react';
 
 const AboutUs = () => {
     return (
-        <div className="relative isolate container lg:px-8 h-lvh text-black">
-            <div className='text-start py-32 sm:py-48 lg:py-56 flex flex-col gap-4'>
+        <div className="relative isolate min-h-lvh text-black">
+            <div className='text-start py-20 flex flex-col gap-4'>
                 <h1 className="text-4xl font-bold mb-6 text-center">About this Project</h1>
                 <div className="flex flex-col justify-center items-center w-full">
-                    <div className="max-w-3xl mx-auto flex flex-col gap-3">
+                    <div className="max-w-3xl mx-auto flex flex-col gap-3 text-justify">
                         <p className="text-lg mb-4">
                             Welcome to Lorem ipsum dolor sit amet consectetur adipisicing elit. Eos perspiciatis possimus quas ut ab et non hic aspernatur praesentium. Quae, error quas maiores repudiandae voluptatibus sapiente molestias nemo fugit beatae.
                             Suscipit sapiente hic corrupti error, ullam, blanditiis veniam culpa facere sunt odit at nam id debitis repudiandae aperiam atque et molestias minima numquam unde labore voluptates doloribus autem! Vitae, natus?

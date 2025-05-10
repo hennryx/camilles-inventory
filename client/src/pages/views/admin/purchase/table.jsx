@@ -1,9 +1,11 @@
+// client/src/pages/views/admin/purchase/table.jsx
 import React, { useEffect, useState } from 'react'
 import { IoIosAdd } from "react-icons/io";
 import Swal from 'sweetalert2';
 import useAuthStore from '../../../../services/stores/authStore';
 import usePurchaseStore from '../../../../services/stores/purchase/purchaseStore';
 import toDate from '../../../../services/utilities/convertDate';
+import FilterMenu from '../../../../components/filterMenu';
 
 const Table = ({ data, toggleAdd, handleUpdate }) => {
     const { deletePurchase } = usePurchaseStore();
@@ -11,9 +13,31 @@ const Table = ({ data, toggleAdd, handleUpdate }) => {
     const [searchResult, setSearchResult] = useState("")
     const [allData, setAllData] = useState(data)
     const [searchTerm, setSearchTerm] = useState('');
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [filters, setFilters] = useState({
+        date: { start: '', end: '' },
+        supplier: '',
+    });
 
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(5);
+
+    // Filter options configuration
+    const filterOptions = {
+        date: {
+            type: 'date',
+            label: 'Purchase Date',
+        },
+        supplier: {
+            type: 'select',
+            label: 'Supplier',
+            choices: [
+                ...new Set(data?.map(item => item.supplier?.companyName))
+            ]
+            .filter(Boolean)
+            .map(name => ({ label: name, value: name }))
+        }
+    };
 
     const handleDelete = (e, data) => {
         e.preventDefault();
@@ -32,31 +56,73 @@ const Table = ({ data, toggleAdd, handleUpdate }) => {
             }
         });
     }
-    useEffect(() => {
-        if (data || searchTerm) {
-            const term = searchTerm.toLowerCase();
 
-            if (term === "") {
-                setAllData(data);
-                setSearchResult("");
-                return;
-            }
-            
-            const filtered = data.filter(item =>
+    // Apply filters to data
+    const applyFilters = () => {
+        let filteredData = [...data];
+        
+        // Filter by search term
+        if (searchTerm) {
+            const term = searchTerm.toLowerCase();
+            filteredData = filteredData.filter(item =>
                 item.supplier?.firstname?.toLowerCase().includes(term) ||
                 item.supplier?.middlename?.toLowerCase().includes(term) ||
-                item.supplier?.lastname?.toLowerCase().includes(term)
+                item.supplier?.lastname?.toLowerCase().includes(term) ||
+                item.supplier?.companyName?.toLowerCase().includes(term)
             );
-
-            if (filtered.length === 0 && searchTerm) {
-                setSearchResult(`No result found for "${searchTerm}"`)
-            } else {
-                setSearchResult("");
-            }
-            setAllData(filtered);
-            setCurrentPage(1);
         }
-    }, [searchTerm, data]);
+        
+        // Filter by date range
+        if (filters.date.start || filters.date.end) {
+            filteredData = filteredData.filter(item => {
+                const purchaseDate = new Date(item.purchaseDate);
+                
+                if (filters.date.start && filters.date.end) {
+                    const startDate = new Date(filters.date.start);
+                    const endDate = new Date(filters.date.end);
+                    endDate.setHours(23, 59, 59); // End of the day
+                    return purchaseDate >= startDate && purchaseDate <= endDate;
+                } else if (filters.date.start) {
+                    const startDate = new Date(filters.date.start);
+                    return purchaseDate >= startDate;
+                } else if (filters.date.end) {
+                    const endDate = new Date(filters.date.end);
+                    endDate.setHours(23, 59, 59); // End of the day
+                    return purchaseDate <= endDate;
+                }
+                
+                return true;
+            });
+        }
+        
+        // Filter by supplier
+        if (filters.supplier) {
+            filteredData = filteredData.filter(item => 
+                item.supplier?.companyName === filters.supplier
+            );
+        }
+        
+        if (filteredData.length === 0) {
+            setSearchResult("No results match your filters");
+        } else {
+            setSearchResult("");
+        }
+        
+        setAllData(filteredData);
+        setCurrentPage(1);
+    };
+
+    // Handle filter changes
+    const handleApplyFilter = (newFilters) => {
+        setFilters(newFilters);
+    };
+
+    useEffect(() => {
+        if (data) {
+            setAllData(data);
+            applyFilters();
+        }
+    }, [data, filters, searchTerm]);
 
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -172,7 +238,15 @@ const Table = ({ data, toggleAdd, handleUpdate }) => {
                                     placeholder="Search"
                                 />
                             </label>
-                            <p>Filter</p>
+                            <div className="relative">
+                                <FilterMenu
+                                    isOpen={isFilterOpen}
+                                    toggleFilter={setIsFilterOpen}
+                                    onApplyFilter={handleApplyFilter}
+                                    filters={filters}
+                                    filterOptions={filterOptions}
+                                />
+                            </div>
                             <button
                                 className='flex items-center justify-center px-4 py-3 bg-green-200 rounded-md text-green-800 whitespace-nowrap hover:bg-green-300'
                                 onClick={() => toggleAdd((prev) => !prev)}
@@ -196,7 +270,7 @@ const Table = ({ data, toggleAdd, handleUpdate }) => {
                 <tbody className='text-gray-500'>
                     {searchResult ? (
                         <tr>
-                            <td colSpan={5} className='text-center py-4 text-gray-500'>{searchResult}</td>
+                            <td colSpan={6} className='text-center py-4 text-gray-500'>{searchResult}</td>
                         </tr>
                     ) : (
                         currentItems.map((_data, i) => (

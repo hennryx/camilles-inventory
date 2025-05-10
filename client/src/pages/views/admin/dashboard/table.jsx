@@ -1,16 +1,42 @@
+// client/src/pages/views/admin/dashboard/table.jsx
 import React, { useEffect, useState } from 'react'
 import useAuthStore from '../../../../services/stores/authStore';
 import useTransactionsStore from '../../../../services/stores/transactions/transactionStore';
+import FilterMenu from '../../../../components/filterMenu';
+import toDate from '../../../../services/utilities/convertDate';
 
 const Table = () => {
     const [searchResult, setSearchResult] = useState("")
     const [searchTerm, setSearchTerm] = useState('');
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [filters, setFilters] = useState({
+        date: { start: '', end: '' },
+        transactionType: ''
+    });
 
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(5);
     const { token } = useAuthStore();
     const { getTransactions, data } = useTransactionsStore();
-    const [allData, setAllData] = useState([])
+    const [allData, setAllData] = useState([]);
+
+    // Filter options
+    const filterOptions = {
+        date: {
+            type: 'date',
+            label: 'Transaction Date',
+        },
+        transactionType: {
+            type: 'select',
+            label: 'Transaction Type',
+            choices: [
+                { label: 'Purchase', value: 'PURCHASE' },
+                { label: 'Sale', value: 'SALE' },
+                { label: 'Damage', value: 'DAMAGE' },
+                { label: 'Return', value: 'RETURN' }
+            ]
+        }
+    };
 
     useEffect(() => {
         if (token) {
@@ -21,35 +47,79 @@ const Table = () => {
     useEffect(() => {
         if (data) {
             setAllData(data);
-            console.log(data);
         }
-    }, [data])
+    }, [data]);
+
+    // Apply filters and search
+    const applyFilters = () => {
+        if (!data) return;
+        
+        let filteredData = [...data];
+        
+        // Filter by search term
+        if (searchTerm) {
+            const term = searchTerm.toLowerCase();
+            filteredData = filteredData.filter(item =>
+                item.suppliers?.some(supplier => 
+                    supplier?.firstname?.toLowerCase().includes(term) ||
+                    supplier?.middlename?.toLowerCase().includes(term) ||
+                    supplier?.lastname?.toLowerCase().includes(term)
+                ) ||
+                item.transactionType?.toLowerCase().includes(term) ||
+                item.products?.some(p => 
+                    p.product?.productName?.toLowerCase().includes(term)
+                )
+            );
+        }
+        
+        // Filter by date range
+        if (filters.date.start || filters.date.end) {
+            filteredData = filteredData.filter(item => {
+                const createdAt = new Date(item.createdAt);
+                
+                if (filters.date.start && filters.date.end) {
+                    const startDate = new Date(filters.date.start);
+                    const endDate = new Date(filters.date.end);
+                    endDate.setHours(23, 59, 59);
+                    return createdAt >= startDate && createdAt <= endDate;
+                } else if (filters.date.start) {
+                    const startDate = new Date(filters.date.start);
+                    return createdAt >= startDate;
+                } else if (filters.date.end) {
+                    const endDate = new Date(filters.date.end);
+                    endDate.setHours(23, 59, 59);
+                    return createdAt <= endDate;
+                }
+                
+                return true;
+            });
+        }
+        
+        // Filter by transaction type
+        if (filters.transactionType) {
+            filteredData = filteredData.filter(item => 
+                item.transactionType === filters.transactionType
+            );
+        }
+        
+        if (filteredData.length === 0 && (searchTerm || Object.values(filters).some(v => v !== ''))) {
+            setSearchResult("No results match your filters");
+        } else {
+            setSearchResult("");
+        }
+        
+        setAllData(filteredData);
+        setCurrentPage(1);
+    };
+
+    // Handle filter changes
+    const handleApplyFilter = (newFilters) => {
+        setFilters(newFilters);
+    };
 
     useEffect(() => {
-        if (data || searchTerm) {
-            const term = searchTerm.toLowerCase();
-
-            if (term === "") {
-                setAllData(data);
-                setSearchResult("");
-                return;
-            }
-
-            const filtered = data.filter(item =>
-                item.supplier?.firstname?.toLowerCase().includes(term) ||
-                item.supplier?.middlename?.toLowerCase().includes(term) ||
-                item.supplier?.lastname?.toLowerCase().includes(term)
-            );
-
-            if (filtered.length === 0 && searchTerm) {
-                setSearchResult(`No result found for "${searchTerm}"`)
-            } else {
-                setSearchResult("");
-            }
-            setAllData(filtered);
-            setCurrentPage(1);
-        }
-    }, [searchTerm, data]);
+        applyFilters();
+    }, [searchTerm, filters, data]);
 
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -165,7 +235,15 @@ const Table = () => {
                                     placeholder="Search"
                                 />
                             </label>
-                            <p>Filter</p>
+                            <div className="relative">
+                                <FilterMenu
+                                    isOpen={isFilterOpen}
+                                    toggleFilter={setIsFilterOpen}
+                                    onApplyFilter={handleApplyFilter}
+                                    filters={filters}
+                                    filterOptions={filterOptions}
+                                />
+                            </div>
                         </div>
                     </div>
                 </caption>
@@ -175,6 +253,7 @@ const Table = () => {
                         <th>Transaction</th>
                         <th>Products</th>
                         <th>Supplier</th>
+                        <th>Date</th>
                     </tr>
                 </thead>
                 <tbody className='text-gray-500'>
@@ -184,10 +263,18 @@ const Table = () => {
                         </tr>
                     ) : (
                         currentItems.map((_data, i) => (
-
                             <tr key={i}>
-                                <th>{i + 1}</th>
-                                <td>{_data.transactionType}</td>
+                                <th>{indexOfFirstItem + i + 1}</th>
+                                <td>
+                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                        _data.transactionType === 'PURCHASE' ? 'bg-blue-100 text-blue-800' :
+                                        _data.transactionType === 'SALE' ? 'bg-green-100 text-green-800' :
+                                        _data.transactionType === 'DAMAGE' ? 'bg-red-100 text-red-800' :
+                                        'bg-yellow-100 text-yellow-800'
+                                    }`}>
+                                        {_data.transactionType}
+                                    </span>
+                                </td>
                                 <td className='flex flex-col gap-2'>{_data.products?.map((prd, x) => (
                                     <p key={x}>
                                         <span>{prd.product?.productName}</span> <br />
@@ -196,6 +283,7 @@ const Table = () => {
                                 ))}
                                 </td>
                                 <td>{_data?.suppliers[0]?.firstname || ""}</td>
+                                <td>{_data.createdAt ? toDate(_data.createdAt) : ''}</td>
                             </tr>
                         ))
                     )}

@@ -200,14 +200,13 @@ exports.deleteProduct = async (req, res) => {
 /**
  * Deduct product stock using FEFO (First Expire First Out)
  * @param {String} productId - Product _id
- * @param {Number} quantityToDeduct - Quantity to deduct from stock
+ * @param {Number} quantity - Quantity to deduct from stock
+ * @param {String} transactionType - transaction type if it's sale or other
+ * @param {String} createdBy - createdBy for who made the transaction
  */
 exports.deductProductStock = async (req, res) => {
     const { products, quantity, ...data } = req.body;
-    console.log(data);
-    
 
-    // Input validation
     if (!Array.isArray(products) || products.length === 0) {
         return res.status(400).json({ success: false, message: "Invalid products array" });
     }
@@ -222,15 +221,13 @@ exports.deductProductStock = async (req, res) => {
         let remainingToDeduct = 0;
         const supplierIds = new Set(); 
 
-        // Process each product ID in the request
         for (const productId of products) {
             remainingToDeduct = quantity;
 
             if (!mongoose.Types.ObjectId.isValid(productId)) {
-                continue; // Skip invalid product IDs
+                continue; 
             }
 
-            // Find batches of this product ordered by expiry date (FEFO - First Expire, First Out)
             const batches = await ProductBatch.find({
                 'products.product': productId,
                 'products.remainingStock': { $gt: 0 }
@@ -238,18 +235,14 @@ exports.deductProductStock = async (req, res) => {
 
             if (batches.length === 0) {
                 console.log(`No available batches found for product ${productId}`);
-                continue; // No available stock for this product, try next product
+                continue;
             }
 
-            // Track how much we deduct from this specific product
             let deductedFromThisProduct = 0;
 
-            // Process each batch starting with the earliest expiry date
             for (const batch of batches) {
                 if (remainingToDeduct <= 0) break;
 
-                
-                // Collect supplier ID if available
                 if (batch.supplier) {
                     supplierIds.add(batch.supplier.toString());
                 }
@@ -257,20 +250,15 @@ exports.deductProductStock = async (req, res) => {
                 for (let i = 0; i < batch.products.length; i++) {
                     const item = batch.products[i];
 
-                    // If this item matches our product and has stock
                     if (item.product.toString() === productId && item.remainingStock > 0) {
-                        // Calculate how much to deduct from this batch
                         const deduction = Math.min(item.remainingStock, remainingToDeduct);
 
-                        // Update the remaining stock
                         item.remainingStock -= deduction;
                         remainingToDeduct -= deduction;
                         deductedFromThisProduct += deduction;
 
-                        // Mark this path as modified to ensure mongoose saves the change
                         batch.markModified(`products.${i}.remainingStock`);
 
-                        // Track what was deducted for the response
                         if (deduction > 0) {
                             deductionDetails.push({
                                 productId,
@@ -284,7 +272,6 @@ exports.deductProductStock = async (req, res) => {
                     }
                 }
 
-                // Save the batch changes
                 await batch.save();
 
                 if (remainingToDeduct <= 0) break;
@@ -303,7 +290,6 @@ exports.deductProductStock = async (req, res) => {
 
         const totalDeducted = quantity - remainingToDeduct;
 
-        // No stock could be deducted
         if (totalDeducted === 0) {
             return res.status(400).json({
                 success: false,
@@ -346,7 +332,6 @@ exports.deductProductStock = async (req, res) => {
             inStock: stockMap[prod._id.toString()] || 0
         }));
 
-        // Return success response
         return res.status(200).json({
             success: true,
             message: `Successfully deducted ${totalDeducted} unit(s).`,

@@ -1,4 +1,5 @@
 const Users = require("../../models/Users");
+const bcrypt = require('bcryptjs');
 
 exports.getAllUsers = async (req, res) => {
     try {
@@ -28,6 +29,11 @@ exports.updateUser = async (req, res) => {
             });
         }
 
+        if (data.password) {
+            const salt = await bcrypt.genSalt(10);
+            data.password = await bcrypt.hash(data.password, salt);
+        }
+
         const user = await Users.findByIdAndUpdate(data._id, data, { new: true });
         if(!user) {
             return res.status(404).json({ 
@@ -47,10 +53,11 @@ exports.updateUser = async (req, res) => {
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: err.message
+            message: error.message
         });
     }
 }
+
 
 exports.deleteUser = async (req, res) => {
     try {
