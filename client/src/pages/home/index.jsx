@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Route, Routes as Switch } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 
 import Login from './login';
 
@@ -30,15 +30,14 @@ const HeroPage = () => {
             <div className="flex-1" style={{ backgroundColor: '#F0F4FB' }} >
                 <Header handleToggle={handleToggle} />
                 <div className='my-16 w-full h-full'>
-                    <Switch>
+                    <Routes>
                         <Route
                             path="/"
                             element={<Home handleToggle={handleToggle} />}
                         />
                         <Route path='/about-us' Component={AboutUs}></Route>
                         <Route path='/*' Component={NotFound}></Route>
-
-                    </Switch>
+                    </Routes>
                 </div>
 
                 <Login isOpen={toggle.login} handleClose={() => handleToggle('login', false)} handleToggle={handleToggle} />

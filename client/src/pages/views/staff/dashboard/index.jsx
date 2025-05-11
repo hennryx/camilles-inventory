@@ -1,4 +1,3 @@
-// client/src/pages/views/staff/dashboard/index.jsx
 import React, { useEffect, useState } from 'react';
 import { FaShoppingCart, FaTrash } from 'react-icons/fa';
 import { ENDPOINT } from '../../../../services/utilities';
@@ -12,7 +11,7 @@ const Dashboard = () => {
     const { token, auth } = useAuthStore();
     const { getProducts, data: productsData, deducProduct } = useProductsStore();
     const { getTransactions } = useTransactionsStore();
-    
+
     const [products, setProducts] = useState([]);
     const [cart, setCart] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -20,7 +19,7 @@ const Dashboard = () => {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [totalAmount, setTotalAmount] = useState(0);
-    
+
     useEffect(() => {
         if (token) {
             getProducts(token);
@@ -28,32 +27,28 @@ const Dashboard = () => {
             setLoading(true);
         }
     }, [token]);
-    
+
     useEffect(() => {
         if (productsData) {
-            // Filter out products with no stock
             const availableProducts = productsData.filter(product => product.inStock > 0);
             setProducts(availableProducts);
-            
-            // Extract unique categories (using unit as category for this example)
+
             const uniqueCategories = [...new Set(availableProducts.map(product => product.unit))];
             setCategories(uniqueCategories);
-            
+
             setLoading(false);
         }
     }, [productsData]);
-    
+
     useEffect(() => {
-        // Calculate total amount whenever cart changes
         const total = cart.reduce((sum, item) => sum + (item.quantity * item.price), 0);
         setTotalAmount(total);
     }, [cart]);
-    
+
     const addToCart = (product) => {
         const existingItem = cart.find(item => item.id === product._id);
-        
+
         if (existingItem) {
-            // Check if we have enough stock
             if (existingItem.quantity >= product.inStock) {
                 Swal.fire({
                     title: 'Stock Limit Reached',
@@ -63,10 +58,10 @@ const Dashboard = () => {
                 });
                 return;
             }
-            
-            setCart(cart.map(item => 
-                item.id === product._id 
-                    ? { ...item, quantity: item.quantity + 1 } 
+
+            setCart(cart.map(item =>
+                item.id === product._id
+                    ? { ...item, quantity: item.quantity + 1 }
                     : item
             ));
         } else {
@@ -80,14 +75,14 @@ const Dashboard = () => {
             }]);
         }
     };
-    
+
     const removeFromCart = (productId) => {
         setCart(cart.filter(item => item.id !== productId));
     };
-    
+
     const updateQuantity = (productId, newQuantity) => {
         if (newQuantity < 1) return;
-        
+
         const product = cart.find(item => item.id === productId);
         if (product && newQuantity > product.maxQuantity) {
             Swal.fire({
@@ -98,24 +93,21 @@ const Dashboard = () => {
             });
             return;
         }
-        
-        setCart(cart.map(item => 
-            item.id === productId 
-                ? { ...item, quantity: newQuantity } 
+
+        setCart(cart.map(item =>
+            item.id === productId
+                ? { ...item, quantity: newQuantity }
                 : item
         ));
     };
-    
+
     const filteredProducts = products.filter(product => {
-        // Apply search filter
         const matchesSearch = product.productName.toLowerCase().includes(searchTerm.toLowerCase());
-        
-        // Apply category filter
         const matchesCategory = filterCategory === 'all' || product.unit === filterCategory;
-        
+
         return matchesSearch && matchesCategory;
     });
-    
+
     const completeSale = async () => {
         if (cart.length === 0) {
             Swal.fire({
@@ -126,8 +118,7 @@ const Dashboard = () => {
             });
             return;
         }
-        
-        // Confirm sale
+
         const result = await Swal.fire({
             title: 'Complete Sale',
             text: `Total Amount: ₱${totalAmount.toFixed(2)}`,
@@ -137,7 +128,7 @@ const Dashboard = () => {
             cancelButtonColor: '#d33',
             confirmButtonText: 'Complete Sale'
         });
-        
+
         if (result.isConfirmed) {
             const saleData = {
                 products: cart.map(item => item.id),
@@ -145,19 +136,19 @@ const Dashboard = () => {
                 quantity: cart.reduce((sum, item) => sum + item.quantity, 0),
                 createdBy: auth._id
             };
-            
+
             try {
                 await deducProduct(saleData, token);
-                
+
                 Swal.fire({
                     title: 'Sale Completed',
                     text: 'Transaction has been recorded successfully',
                     icon: 'success',
                     confirmButtonColor: '#3085d6'
                 });
-                
+
                 setCart([]);
-                
+
                 getProducts(token);
             } catch (error) {
                 Swal.fire({
@@ -169,11 +160,13 @@ const Dashboard = () => {
             }
         }
     };
-    
+
     return (
         <div className="container mx-auto px-4 py-6">
-            <h1 className="text-2xl font-bold mb-6">Point of Sale</h1>
-            
+            <div className='mb-4'>
+                <h2 className='text-xl text-[#4154F1]'>Point of Sale</h2>
+            </div>
+
             <div className="flex flex-col md:flex-row gap-6">
                 <div className="w-full md:w-2/3 bg-white rounded-lg shadow-md p-4">
                     <div className="mb-4 flex flex-col sm:flex-row justify-between gap-4">
@@ -184,7 +177,7 @@ const Dashboard = () => {
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="px-4 py-2 border border-gray-300 rounded-md w-full sm:w-1/2"
                         />
-                        
+
                         <select
                             value={filterCategory}
                             onChange={(e) => setFilterCategory(e.target.value)}
@@ -196,7 +189,7 @@ const Dashboard = () => {
                             ))}
                         </select>
                     </div>
-                    
+
                     {loading ? (
                         <div className="flex justify-center items-center h-64">
                             <p className="text-lg text-gray-500">Loading products...</p>
@@ -208,7 +201,7 @@ const Dashboard = () => {
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                             {filteredProducts.map((product) => (
-                                <div 
+                                <div
                                     key={product._id}
                                     className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
                                     onClick={() => addToCart(product)}
@@ -237,16 +230,15 @@ const Dashboard = () => {
                         </div>
                     )}
                 </div>
-                
-                {/* Cart Section */}
+
                 <div className="w-full md:w-1/3 bg-white rounded-lg shadow-md p-4">
                     <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-xl font-semibold">Shopping Cart</h2>
+                        <h2 className='text-xl text-[#4154F1] font-semibold'>Orders</h2>
                         <div className="bg-blue-100 text-blue-800 p-2 rounded-full">
                             <FaShoppingCart className="h-5 w-5" />
                         </div>
                     </div>
-                    
+
                     {cart.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-64 text-gray-500">
                             <FaShoppingCart className="h-12 w-12 mb-4" />
@@ -272,21 +264,21 @@ const Dashboard = () => {
                                             <p className="text-gray-500 text-sm">₱{item.price}</p>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <button 
+                                            <button
                                                 onClick={() => updateQuantity(item.id, item.quantity - 1)}
                                                 className="px-2 py-1 bg-gray-100 rounded-md"
                                             >
                                                 -
                                             </button>
                                             <span className="w-8 text-center">{item.quantity}</span>
-                                            <button 
+                                            <button
                                                 onClick={() => updateQuantity(item.id, item.quantity + 1)}
                                                 className="px-2 py-1 bg-gray-100 rounded-md"
                                             >
                                                 +
                                             </button>
                                         </div>
-                                        <button 
+                                        <button
                                             onClick={() => removeFromCart(item.id)}
                                             className="p-1 text-red-500 hover:bg-red-50 rounded-full"
                                         >
@@ -295,7 +287,7 @@ const Dashboard = () => {
                                     </div>
                                 ))}
                             </div>
-                            
+
                             <div className="mt-4 border-t border-gray-200 pt-4">
                                 <div className="flex justify-between items-center mb-2">
                                     <span className="text-gray-600">Subtotal:</span>
@@ -305,12 +297,12 @@ const Dashboard = () => {
                                     <span className="text-gray-600">Total:</span>
                                     <span className="font-bold text-lg">₱{totalAmount.toFixed(2)}</span>
                                 </div>
-                                
+
                                 <button
                                     onClick={completeSale}
                                     className="w-full py-3 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700"
                                 >
-                                    Complete Sale
+                                    Place order
                                 </button>
                             </div>
                         </>

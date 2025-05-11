@@ -1,4 +1,3 @@
-// client/src/pages/views/admin/returns/returnModal.jsx
 import React, { useState, useEffect } from 'react';
 import { Checkbox } from '@headlessui/react';
 import useAuthStore from '../../../../services/stores/authStore';

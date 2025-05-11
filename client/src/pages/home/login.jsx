@@ -4,7 +4,7 @@ import { HiOutlineX } from 'react-icons/hi';
 
 import { toast } from 'react-toastify';
 import useAuthStore from '../../services/stores/authStore';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const Login = ({ isOpen, handleClose, handleToggle }) => {
     const [viewPassword, setViewPassword] = useState(false);
@@ -46,9 +46,9 @@ const Login = ({ isOpen, handleClose, handleToggle }) => {
             toast.success(message);
             handleClose();
             reset()
-            if(message === 'Login successful') {
+            if (message === 'Login successful') {
                 navigate('/dashboard');
-            }else {
+            } else {
                 setUserData((prev) => ({
                     ...prev,
                     email: "",
@@ -56,14 +56,14 @@ const Login = ({ isOpen, handleClose, handleToggle }) => {
                 }))
             }
 
-        } else if(message){
+        } else if (message) {
             toast.error(message || "Something went wrong.");
         }
     }, [isSuccess, message])
 
     useEffect(() => {
-        if(email) {
-            setUserData((prev) => ({...prev, email}))
+        if (email) {
+            setUserData((prev) => ({ ...prev, email }))
         }
     }, [email])
 
@@ -162,13 +162,14 @@ const Login = ({ isOpen, handleClose, handleToggle }) => {
                                 )}
                                 <div className="flex flex-col gap-2 pt-2 w-full">
                                     <button
+                                        disabled={isLoading}
                                         className="btn w-max border-0 justify-center rounded-md bg-blue-300 px-3 py-1.5 text-sm font-semibold leading-6 text-blue-800 shadow-sm hover:bg-blue-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-650"
                                         onClick={(e) => handleSubmit(e)}
                                     >
-                                        Login
+                                        {isLoading ? 'logging in...' : 'Log in'}
                                     </button>
                                     {email && (
-                                        <button 
+                                        <button
                                             className="btn w-full justify-center rounded-md bg-gray-300 px-3 py-1.5 text-sm font-semibold leading-6 text-gray-800 shadow-sm hover:bg-gray-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-200"
                                             onClick={(e) => handleLogout(e)}
                                         >
@@ -176,9 +177,14 @@ const Login = ({ isOpen, handleClose, handleToggle }) => {
                                         </button>
                                     )}
                                 </div>
-                                <label className="signup-link w-full text-start">
-                                    Forget Password?
-                                </label>
+
+                                <div className="flex items-center justify-between">
+                                    <div className="text-sm">
+                                        <Link to="/forgot-password" className="font-medium text-indigo-600 hover:text-indigo-500">
+                                            Forgot your password?
+                                        </Link>
+                                    </div>
+                                </div>
                             </form>
                         </div>
                     </div>

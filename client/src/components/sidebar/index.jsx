@@ -8,9 +8,11 @@ import { BsList } from "react-icons/bs";
 import { VscAccount } from "react-icons/vsc";
 import { IoMdLogOut } from "react-icons/io";
 import Logo from "../../assets/Logo.png"
+import NoImage from "../../assets/No-Image.png";
 
 import './sidebar.css'
 import Swal from 'sweetalert2';
+import { ENDPOINT } from '../../services/utilities';
 
 
 const Sidebar = ({ role, token }) => {
@@ -20,8 +22,16 @@ const Sidebar = ({ role, token }) => {
     const [expandedMenu, setExpandedMenu] = useState({});
     const [activeIndex, setActiveIndex] = useState(0);
     const [isAccOpen, setIsAccOpen] = useState(false);
+    const [imagePreview, setImagePreview] = useState(null);
     const location = useLocation();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (auth?.profileImage) {
+            setImagePreview(`${ENDPOINT}/assets/profiles/${auth.profileImage}`);
+        }
+    }, [auth]);
+
 
     useEffect(() => {
         const handleResize = () => {
@@ -196,12 +206,24 @@ const Sidebar = ({ role, token }) => {
                     className={`bg-blue-800 h-full w-full flex items-center transition-[height] duration-500 ease-in-out ${isCollapsed ? 'justify-center p-4' : "justify-start py-4 pl-10 pr-4"} gap-4`}
                     onClick={(e) => setIsAccOpen(prev => !prev)}
                 >
-                    <VscAccount className='text-white' size={22} />
+                    {imagePreview ? (
+                        <img
+                            src={imagePreview}
+                            alt="Profile"
+                            className="object-cover w-7 h-7 rounded-full"
+                            onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = NoImage;
+                            }}
+                        />
+                    ) : (
+                        <VscAccount className='text-white' size={22} />
+                    )}
                     {!isCollapsed && <span className='text-white transition-opacity duration-500'>{auth.firstname}</span>}
                 </div>
                 {isAccOpen && (
                     <>
-                        <div 
+                        <div
                             className="py-2 pl-10 pr-4 cursor-pointer hover:bg-blue-600 w-full flex gap-4 items-center"
                             onClick={handleNavigateAccount}
                         >
@@ -211,8 +233,8 @@ const Sidebar = ({ role, token }) => {
                             )}
                         </div>
 
-                        <div 
-                            className="py-2 pl-10 pr-4 cursor-pointer  hover:bg-blue-600 w-full flex gap-4 items-center" 
+                        <div
+                            className="py-2 pl-10 pr-4 cursor-pointer  hover:bg-blue-600 w-full flex gap-4 items-center"
                             onClick={(e) => handleLogout(e)}
                         >
                             <IoMdLogOut size={20} className='text-white' />

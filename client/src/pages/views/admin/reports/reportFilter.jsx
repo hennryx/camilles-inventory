@@ -1,4 +1,3 @@
-// client/src/pages/views/admin/reports/reportFilter.jsx
 import React from 'react';
 
 const ReportFilter = ({ dateRange, setDateRange }) => {

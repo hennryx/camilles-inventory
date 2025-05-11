@@ -18,7 +18,9 @@ function App() {
 
     const heroPaths = [
         '/',
-        '/about-us'
+        '/about-us',
+        '/forgot-password',
+        '/reset-password/:token'
     ];
 
     const urlPath = location.pathname;
@@ -26,7 +28,10 @@ function App() {
     return (
         <>
             <Routes>
-                {heroPaths.includes(urlPath) ? <Route path='/*' element={<HeroPage />} /> : <Route path='/*' element={<Views />} />}
+                {heroPaths.includes(urlPath) 
+                ? <Route path='/*' element={<HeroPage />} /> 
+                : <Route path='/*' element={<Views />} />
+                }
                 <Route path='*' element={<NotFound />} />
             </Routes>
         </>

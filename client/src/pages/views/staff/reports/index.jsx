@@ -1,13 +1,12 @@
-// client/src/pages/views/admin/reports/index.jsx
-import React, { useState, useEffect } from 'react';
-import { jsPDF } from 'jspdf';
+import React, { useState, useEffect, useRef } from 'react';
 import 'jspdf-autotable';
 import useAuthStore from '../../../../services/stores/authStore';
 import useProductsStore from '../../../../services/stores/products/productsStore';
 import useTransactionsStore from '../../../../services/stores/transactions/transactionStore';
 import usePurchaseStore from '../../../../services/stores/purchase/purchaseStore';
 import ReportFilter from './reportFilter';
-import { FaFilePdf, FaFileExcel, FaRegListAlt } from 'react-icons/fa';
+import ReportVisualization from './reportVisualization';
+import { FaFilePdf, FaFileExcel, FaRegListAlt, FaChartBar } from 'react-icons/fa';
 
 const Reports = () => {
     const { token } = useAuthStore();
@@ -21,6 +20,10 @@ const Reports = () => {
         endDate: new Date().toISOString().split('T')[0]
     });
     const [filteredData, setFilteredData] = useState([]);
+    const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+    
+    const reportTableRef = useRef(null);
+    const reportHeaderRef = useRef(null);
     
     useEffect(() => {
         if (token) {
@@ -60,138 +63,140 @@ const Reports = () => {
         }
     };
     
-    const generatePDF = () => {
-        const doc = new jsPDF();
-        const title = `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report`;
-        const dateStr = `${dateRange.startDate} to ${dateRange.endDate}`;
+    const visualizationRef = useRef(null);
+    
+    const generatePDF = async () => {
+        if (!reportTableRef.current || !reportHeaderRef.current) return;
         
-        // Add title
-        doc.setFontSize(18);
-        doc.text(title, 14, 22);
+        setIsGeneratingReport(true);
         
-        // Add date range
-        doc.setFontSize(11);
-        doc.text(`Date Range: ${dateStr}`, 14, 30);
-        
-        let tableData = [];
-        let columns = [];
-        
-        if (reportType === 'sales') {
-            columns = [
-                { header: 'Date', dataKey: 'date' },
-                { header: 'Product', dataKey: 'product' },
-                { header: 'Quantity', dataKey: 'quantity' },
-                { header: 'Total', dataKey: 'total' }
+        try {
+            const pdfUtils = await import('../../../../services/utilities/pdfUtils');
+            
+            const title = `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report`;
+            
+            const elements = [
+                {
+                    element: reportHeaderRef.current,
+                    config: { scale: 2 }
+                }
             ];
             
-            tableData = filteredData.map(item => {
-                return {
-                    date: new Date(item.createdAt).toLocaleDateString(),
-                    product: item.products.map(p => p.product?.productName).join(', '),
-                    quantity: item.products.map(p => p.quantity).reduce((a, b) => a + b, 0),
-                    total: `₱${item.products.map(p => p.quantity * (p.product?.sellingPrice || 0)).reduce((a, b) => a + b, 0)}`
-                };
-            });
-        } else if (reportType === 'purchases') {
-            columns = [
-                { header: 'Date', dataKey: 'date' },
-                { header: 'Supplier', dataKey: 'supplier' },
-                { header: 'Products', dataKey: 'products' },
-                { header: 'Total Items', dataKey: 'totalItems' }
-            ];
+            if (showVisualization && visualizationRef.current) {
+                elements.push({
+                    element: visualizationRef.current,
+                    config: { scale: 2 }
+                });
+            }
             
-            tableData = filteredData.map(item => {
-                return {
-                    date: new Date(item.purchaseDate).toLocaleDateString(),
-                    supplier: item.supplier?.companyName || 'N/A',
-                    products: item.products?.map(p => p.product?.productName).join(', '),
-                    totalItems: item.products?.length || 0
-                };
+            elements.push({
+                element: reportTableRef.current,
+                config: { scale: 2 }
             });
-        } else if (reportType === 'inventory') {
-            columns = [
-                { header: 'Product Name', dataKey: 'name' },
-                { header: 'Size', dataKey: 'size' },
-                { header: 'Price', dataKey: 'price' },
-                { header: 'In Stock', dataKey: 'stock' }
-            ];
             
-            tableData = filteredData.map(item => {
-                return {
-                    name: item.productName,
-                    size: `${item.unitSize} ${item.unit}`,
-                    price: `₱${item.sellingPrice}`,
-                    stock: item.inStock || 0
-                };
+            await pdfUtils.generatePDFFromElements({
+                elements,
+                filename: `${reportType}_report_${new Date().toISOString().slice(0, 10)}.pdf`,
+                format: 'a4',
+                orientation: 'portrait'
             });
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+        } finally {
+            setIsGeneratingReport(false);
         }
-        
-        doc.autoTable({
-            head: [columns.map(col => col.header)],
-            body: tableData.map(item => columns.map(col => item[col.dataKey])),
-            startY: 40,
-            theme: 'grid',
-            styles: { fontSize: 8, cellPadding: 2 },
-            headStyles: { fillColor: [65, 84, 241] }
-        });
-        
-        doc.save(`${reportType}_report_${new Date().toISOString().slice(0, 10)}.pdf`);
     };
     
-    const exportToCSV = () => {
-        let csvContent = '';
-        let headers = [];
-        
-        if (reportType === 'sales') {
-            headers = ['Date', 'Product', 'Quantity', 'Total'];
-            csvContent = headers.join(',') + '\n';
+    const exportToCSV = async () => {
+        try {
+            const pdfUtils = await import('../../../../services/utilities/pdfUtils');
             
-            filteredData.forEach(item => {
-                const row = [
-                    new Date(item.createdAt).toLocaleDateString(),
-                    item.products.map(p => p.product?.productName).join(' | '),
-                    item.products.map(p => p.quantity).reduce((a, b) => a + b, 0),
-                    item.products.map(p => p.quantity * (p.product?.sellingPrice || 0)).reduce((a, b) => a + b, 0)
-                ];
-                csvContent += row.join(',') + '\n';
-            });
-        } else if (reportType === 'purchases') {
-            headers = ['Date', 'Supplier', 'Products', 'Total Items'];
-            csvContent = headers.join(',') + '\n';
+            let headerConfig = [];
+            let formattedData = [];
             
-            filteredData.forEach(item => {
-                const row = [
-                    new Date(item.purchaseDate).toLocaleDateString(),
-                    item.supplier?.companyName || 'N/A',
-                    item.products?.map(p => p.product?.productName).join(' | '),
-                    item.products?.length || 0
+            if (reportType === 'sales') {
+                headerConfig = [
+                    { key: 'date', label: 'Date' },
+                    { key: 'product', label: 'Product' },
+                    { key: 'quantity', label: 'Quantity' },
+                    { key: 'total', label: 'Total' }
                 ];
-                csvContent += row.join(',') + '\n';
-            });
-        } else if (reportType === 'inventory') {
-            headers = ['Product Name', 'Size', 'Price', 'In Stock'];
-            csvContent = headers.join(',') + '\n';
+                
+                formattedData = filteredData.map(item => ({
+                    date: new Date(item.createdAt).toLocaleDateString(),
+                    product: item.products.map(p => p.product?.productName).join(' | '),
+                    quantity: item.products.map(p => p.quantity).reduce((a, b) => a + b, 0),
+                    total: item.products.map(p => p.quantity * (p.product?.sellingPrice || 0)).reduce((a, b) => a + b, 0)
+                }));
+            } else if (reportType === 'purchases') {
+                headerConfig = [
+                    { key: 'date', label: 'Date' },
+                    { key: 'supplier', label: 'Supplier' },
+                    { key: 'products', label: 'Products' },
+                    { key: 'totalItems', label: 'Total Items' }
+                ];
+                
+                formattedData = filteredData.map(item => ({
+                    date: new Date(item.purchaseDate).toLocaleDateString(),
+                    supplier: item.supplier?.companyName || 'N/A',
+                    products: item.products?.map(p => p.product?.productName).join(' | '),
+                    totalItems: item.products?.length || 0
+                }));
+            } else if (reportType === 'inventory') {
+                headerConfig = [
+                    { key: 'productName', label: 'Product Name' },
+                    { key: 'size', label: 'Size' },
+                    { key: 'price', label: 'Price' },
+                    { key: 'inStock', label: 'In Stock' }
+                ];
+                
+                formattedData = filteredData.map(item => ({
+                    productName: item.productName,
+                    size: `${item.unitSize} ${item.unit}`,
+                    price: item.sellingPrice,
+                    inStock: item.inStock || 0
+                }));
+            } else if (reportType === 'returns') {
+                headerConfig = [
+                    { key: 'date', label: 'Date' },
+                    { key: 'product', label: 'Product' },
+                    { key: 'quantity', label: 'Quantity' },
+                    { key: 'reason', label: 'Reason' }
+                ];
+                
+                formattedData = filteredData.map(item => ({
+                    date: new Date(item.createdAt).toLocaleDateString(),
+                    product: item.products.map(p => p.product?.productName).join(' | '),
+                    quantity: item.products.map(p => p.quantity).reduce((a, b) => a + b, 0),
+                    reason: item.notes || 'N/A'
+                }));
+            }
             
-            filteredData.forEach(item => {
-                const row = [
-                    item.productName,
-                    `${item.unitSize} ${item.unit}`,
-                    item.sellingPrice,
-                    item.inStock || 0
-                ];
-                csvContent += row.join(',') + '\n';
-            });
+            pdfUtils.exportToCSV(
+                formattedData,
+                headerConfig,
+                `${reportType}_report_${new Date().toISOString().slice(0, 10)}.csv`
+            );
+        } catch (error) {
+            console.error('Error exporting CSV:', error);
         }
-        
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.setAttribute('href', url);
-        link.setAttribute('download', `${reportType}_report_${new Date().toISOString().slice(0, 10)}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
     };
+    
+    const renderReportHeader = () => {
+        const title = `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report`;
+        const dateStr = `Date Range: ${dateRange.startDate} to ${dateRange.endDate}`;
+        
+        return (
+            <div ref={reportHeaderRef} className="mb-4 py-4 bg-white">
+                <div className="text-center">
+                    <h1 className="text-2xl font-bold text-blue-600 mb-2">{title}</h1>
+                    <p className="text-gray-600">{dateStr}</p>
+                </div>
+            </div>
+        );
+    };
+    
+    const [showVisualization, setShowVisualization] = useState(false);
     
     return (
         <div className='container'>
@@ -224,13 +229,14 @@ const Reports = () => {
                         <ReportFilter dateRange={dateRange} setDateRange={setDateRange} />
                     </div>
                     
-                    <div className="flex space-x-4 mb-6">
+                    <div className="flex flex-wrap space-x-4 mb-6">
                         <button
                             onClick={generatePDF}
+                            disabled={isGeneratingReport}
                             className="inline-flex items-center px-4 py-2 bg-red-100 border border-transparent rounded-md font-semibold text-xs text-red-700 uppercase tracking-widest hover:bg-red-200 active:bg-red-300 focus:outline-none focus:border-red-300 focus:ring ring-red-200 disabled:opacity-25 transition ease-in-out duration-150"
                         >
                             <FaFilePdf className="mr-2" />
-                            Export as PDF
+                            {isGeneratingReport ? 'Generating...' : 'Export as PDF'}
                         </button>
                         
                         <button
@@ -248,9 +254,28 @@ const Reports = () => {
                             <FaRegListAlt className="mr-2" />
                             Update Report
                         </button>
+                        
+                        <button
+                            onClick={() => setShowVisualization(!showVisualization)}
+                            className="inline-flex items-center px-4 py-2 bg-purple-100 border border-transparent rounded-md font-semibold text-xs text-purple-700 uppercase tracking-widest hover:bg-purple-200 active:bg-purple-300 focus:outline-none focus:border-purple-300 focus:ring ring-purple-200 disabled:opacity-25 transition ease-in-out duration-150"
+                        >
+                            <FaChartBar className="mr-2" />
+                            {showVisualization ? 'Hide Visualization' : 'Show Visualization'}
+                        </button>
                     </div>
                     
-                    <div className="overflow-x-auto bg-white shadow-inner rounded-lg">
+                    {showVisualization && (
+                        <div ref={visualizationRef}>
+                            <ReportVisualization 
+                                reportType={reportType} 
+                                data={filteredData} 
+                            />
+                        </div>
+                    )}
+                    
+                    {renderReportHeader()}
+                    
+                    <div ref={reportTableRef} className="overflow-x-auto bg-white shadow-inner rounded-lg">
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>
@@ -305,13 +330,13 @@ const Reports = () => {
                                                 <>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(item.createdAt).toLocaleDateString()}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        {item.products.map(p => p.product?.productName).join(', ')}
+                                                        {item.products?.map(p => p.product?.productName).join(', ')}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        {item.products.map(p => p.quantity).reduce((a, b) => a + b, 0)}
+                                                        {item.products?.map(p => p.quantity).reduce((a, b) => a + b, 0)}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        ₱{item.products.map(p => p.quantity * (p.product?.sellingPrice || 0)).reduce((a, b) => a + b, 0)}
+                                                        ₱{item.products?.map(p => p.quantity * (p.product?.sellingPrice || 0)).reduce((a, b) => a + b, 0)}
                                                     </td>
                                                 </>
                                             )}
@@ -331,10 +356,10 @@ const Reports = () => {
                                                 <>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(item.createdAt).toLocaleDateString()}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        {item.products.map(p => p.product?.productName).join(', ')}
+                                                        {item.products?.map(p => p.product?.productName).join(', ')}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        {item.products.map(p => p.quantity).reduce((a, b) => a + b, 0)}
+                                                        {item.products?.map(p => p.quantity).reduce((a, b) => a + b, 0)}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.notes || 'N/A'}</td>
                                                 </>

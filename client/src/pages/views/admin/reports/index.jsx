@@ -1,12 +1,12 @@
-// client/src/pages/views/admin/reports/index.jsx
-import React, { useState, useEffect } from 'react';
-import { FaFilePdf, FaRegListAlt } from 'react-icons/fa';
+import React, { useState, useEffect, useRef } from 'react';
+import 'jspdf-autotable';
 import useAuthStore from '../../../../services/stores/authStore';
 import useProductsStore from '../../../../services/stores/products/productsStore';
 import useTransactionsStore from '../../../../services/stores/transactions/transactionStore';
 import usePurchaseStore from '../../../../services/stores/purchase/purchaseStore';
-import { toast } from 'react-toastify';
-import html2pdf from 'html2pdf.js';
+import ReportFilter from './reportFilter';
+import ReportVisualization from './reportVisualization';
+import { FaFilePdf, FaFileExcel, FaRegListAlt, FaChartBar } from 'react-icons/fa';
 
 const Reports = () => {
     const { token } = useAuthStore();
@@ -20,6 +20,10 @@ const Reports = () => {
         endDate: new Date().toISOString().split('T')[0]
     });
     const [filteredData, setFilteredData] = useState([]);
+    const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+    
+    const reportTableRef = useRef(null);
+    const reportHeaderRef = useRef(null);
     
     useEffect(() => {
         if (token) {
@@ -59,215 +63,141 @@ const Reports = () => {
         }
     };
     
-    const handleDateRangeChange = (e) => {
-        const { name, value } = e.target;
-        setDateRange(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
+    const visualizationRef = useRef(null);
     
-    const generatePDF = () => {
-        // Create a temporary element to render the report
-        const element = document.createElement('div');
-        element.style.padding = '20px';
-        element.style.fontFamily = 'Arial, sans-serif';
+    const generatePDF = async () => {
+        if (!reportTableRef.current || !reportHeaderRef.current) return;
         
-        // Add title and date range
-        const title = document.createElement('h1');
-        title.textContent = `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report`;
-        title.style.color = '#4154F1';
-        title.style.marginBottom = '10px';
-        element.appendChild(title);
+        setIsGeneratingReport(true);
         
-        const dateInfo = document.createElement('p');
-        dateInfo.textContent = `Date Range: ${new Date(dateRange.startDate).toLocaleDateString()} to ${new Date(dateRange.endDate).toLocaleDateString()}`;
-        dateInfo.style.marginBottom = '20px';
-        element.appendChild(dateInfo);
-        
-        // Create table
-        const table = document.createElement('table');
-        table.style.width = '100%';
-        table.style.borderCollapse = 'collapse';
-        
-        // Create table header
-        const thead = document.createElement('thead');
-        const headerRow = document.createElement('tr');
-        headerRow.style.backgroundColor = '#4154F1';
-        headerRow.style.color = 'white';
-        
-        // Define columns based on report type
-        let columns = [];
-        
-        if (reportType === 'sales') {
-            columns = ['Date', 'Product', 'Quantity', 'Total'];
-        } else if (reportType === 'purchases') {
-            columns = ['Date', 'Supplier', 'Products', 'Total Items'];
-        } else if (reportType === 'returns') {
-            columns = ['Date', 'Product', 'Quantity', 'Reason'];
-        } else if (reportType === 'inventory') {
-            columns = ['Product Name', 'Size', 'Price', 'In Stock'];
-        }
-        
-        columns.forEach(column => {
-            const th = document.createElement('th');
-            th.textContent = column;
-            th.style.padding = '8px';
-            th.style.textAlign = 'left';
-            headerRow.appendChild(th);
-        });
-        
-        thead.appendChild(headerRow);
-        table.appendChild(thead);
-        
-        // Create table body
-        const tbody = document.createElement('tbody');
-        
-        filteredData.forEach((item, index) => {
-            const row = document.createElement('tr');
-            row.style.backgroundColor = index % 2 === 0 ? '#f9f9f9' : 'white';
+        try {
+            const pdfUtils = await import('../../../../services/utilities/pdfUtils');
             
-            // Add cells based on report type
-            if (reportType === 'sales') {
-                const dateCell = document.createElement('td');
-                dateCell.textContent = new Date(item.createdAt).toLocaleDateString();
-                row.appendChild(dateCell);
-                
-                const productCell = document.createElement('td');
-                productCell.textContent = item.products.map(p => p.product?.productName).join(', ');
-                row.appendChild(productCell);
-                
-                const quantityCell = document.createElement('td');
-                quantityCell.textContent = item.products.map(p => p.quantity).reduce((a, b) => a + b, 0);
-                row.appendChild(quantityCell);
-                
-                const totalCell = document.createElement('td');
-                totalCell.textContent = `₱${item.products.map(p => p.quantity * (p.product?.sellingPrice || 0)).reduce((a, b) => a + b, 0)}`;
-                row.appendChild(totalCell);
-            } else if (reportType === 'purchases') {
-                const dateCell = document.createElement('td');
-                dateCell.textContent = new Date(item.purchaseDate).toLocaleDateString();
-                row.appendChild(dateCell);
-                
-                const supplierCell = document.createElement('td');
-                supplierCell.textContent = item.supplier?.companyName || 'N/A';
-                row.appendChild(supplierCell);
-                
-                const productsCell = document.createElement('td');
-                productsCell.textContent = item.products?.map(p => p.product?.productName).join(', ');
-                row.appendChild(productsCell);
-                
-                const totalItemsCell = document.createElement('td');
-                totalItemsCell.textContent = item.products?.length || 0;
-                row.appendChild(totalItemsCell);
-            } else if (reportType === 'returns') {
-                const dateCell = document.createElement('td');
-                dateCell.textContent = new Date(item.createdAt).toLocaleDateString();
-                row.appendChild(dateCell);
-                
-                const productCell = document.createElement('td');
-                productCell.textContent = item.products.map(p => p.product?.productName).join(', ');
-                row.appendChild(productCell);
-                
-                const quantityCell = document.createElement('td');
-                quantityCell.textContent = item.products.map(p => p.quantity).reduce((a, b) => a + b, 0);
-                row.appendChild(quantityCell);
-                
-                const reasonCell = document.createElement('td');
-                reasonCell.textContent = item.notes || 'N/A';
-                row.appendChild(reasonCell);
-            } else if (reportType === 'inventory') {
-                const nameCell = document.createElement('td');
-                nameCell.textContent = item.productName;
-                row.appendChild(nameCell);
-                
-                const sizeCell = document.createElement('td');
-                sizeCell.textContent = `${item.unitSize} ${item.unit}`;
-                row.appendChild(sizeCell);
-                
-                const priceCell = document.createElement('td');
-                priceCell.textContent = `₱${item.sellingPrice}`;
-                row.appendChild(priceCell);
-                
-                const stockCell = document.createElement('td');
-                stockCell.textContent = item.inStock || 0;
-                row.appendChild(stockCell);
+            const title = `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report`;
+            
+            const elements = [
+                {
+                    element: reportHeaderRef.current,
+                    config: { scale: 2 }
+                }
+            ];
+            
+            if (showVisualization && visualizationRef.current) {
+                elements.push({
+                    element: visualizationRef.current,
+                    config: { scale: 2 }
+                });
             }
             
-            // Style the cells
-            Array.from(row.cells).forEach(cell => {
-                cell.style.padding = '8px';
-                cell.style.borderBottom = '1px solid #ddd';
+            elements.push({
+                element: reportTableRef.current,
+                config: { scale: 2 }
             });
             
-            tbody.appendChild(row);
-        });
-        
-        table.appendChild(tbody);
-        element.appendChild(table);
-        
-        // Generate summary section
-        const summary = document.createElement('div');
-        summary.style.marginTop = '20px';
-        summary.style.padding = '10px';
-        summary.style.backgroundColor = '#f5f5f5';
-        summary.style.borderRadius = '5px';
-        
-        const summaryTitle = document.createElement('h2');
-        summaryTitle.textContent = 'Summary';
-        summaryTitle.style.fontSize = '16px';
-        summaryTitle.style.marginBottom = '10px';
-        summary.appendChild(summaryTitle);
-        
-        const summaryContent = document.createElement('p');
-        if (reportType === 'sales') {
-            const totalSales = filteredData.reduce((sum, item) => {
-                return sum + item.products.reduce((productSum, p) => {
-                    return productSum + (p.quantity * (p.product?.sellingPrice || 0));
-                }, 0);
-            }, 0);
-            summaryContent.textContent = `Total Sales: ₱${totalSales.toFixed(2)}`;
-        } else if (reportType === 'purchases') {
-            const totalItems = filteredData.reduce((sum, item) => {
-                return sum + (item.products?.length || 0);
-            }, 0);
-            summaryContent.textContent = `Total Items Purchased: ${totalItems}`;
-        } else if (reportType === 'returns') {
-            const totalReturned = filteredData.reduce((sum, item) => {
-                return sum + item.products.reduce((productSum, p) => {
-                    return productSum + p.quantity;
-                }, 0);
-            }, 0);
-            summaryContent.textContent = `Total Items Returned: ${totalReturned}`;
-        } else if (reportType === 'inventory') {
-            const totalStock = filteredData.reduce((sum, item) => {
-                return sum + (item.inStock || 0);
-            }, 0);
-            summaryContent.textContent = `Total Items in Stock: ${totalStock}`;
-        }
-        
-        summary.appendChild(summaryContent);
-        element.appendChild(summary);
-        
-        // Generate PDF from the element
-        const opt = {
-            margin: 10,
-            filename: `${reportType}_report_${new Date().toISOString().slice(0, 10)}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-        
-        html2pdf().from(element).set(opt).save()
-            .then(() => {
-                toast.success('PDF generated successfully');
-            })
-            .catch(error => {
-                console.error('PDF generation error:', error);
-                toast.error('Failed to generate PDF');
+            await pdfUtils.generatePDFFromElements({
+                elements,
+                filename: `${reportType}_report_${new Date().toISOString().slice(0, 10)}.pdf`,
+                format: 'a4',
+                orientation: 'portrait'
             });
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+        } finally {
+            setIsGeneratingReport(false);
+        }
     };
-
+    
+    const exportToCSV = async () => {
+        try {
+            const pdfUtils = await import('../../../../services/utilities/pdfUtils');
+            
+            let headerConfig = [];
+            let formattedData = [];
+            
+            if (reportType === 'sales') {
+                headerConfig = [
+                    { key: 'date', label: 'Date' },
+                    { key: 'product', label: 'Product' },
+                    { key: 'quantity', label: 'Quantity' },
+                    { key: 'total', label: 'Total' }
+                ];
+                
+                formattedData = filteredData.map(item => ({
+                    date: new Date(item.createdAt).toLocaleDateString(),
+                    product: item.products.map(p => p.product?.productName).join(' | '),
+                    quantity: item.products.map(p => p.quantity).reduce((a, b) => a + b, 0),
+                    total: item.products.map(p => p.quantity * (p.product?.sellingPrice || 0)).reduce((a, b) => a + b, 0)
+                }));
+            } else if (reportType === 'purchases') {
+                headerConfig = [
+                    { key: 'date', label: 'Date' },
+                    { key: 'supplier', label: 'Supplier' },
+                    { key: 'products', label: 'Products' },
+                    { key: 'totalItems', label: 'Total Items' }
+                ];
+                
+                formattedData = filteredData.map(item => ({
+                    date: new Date(item.purchaseDate).toLocaleDateString(),
+                    supplier: item.supplier?.companyName || 'N/A',
+                    products: item.products?.map(p => p.product?.productName).join(' | '),
+                    totalItems: item.products?.length || 0
+                }));
+            } else if (reportType === 'inventory') {
+                headerConfig = [
+                    { key: 'productName', label: 'Product Name' },
+                    { key: 'size', label: 'Size' },
+                    { key: 'price', label: 'Price' },
+                    { key: 'inStock', label: 'In Stock' }
+                ];
+                
+                formattedData = filteredData.map(item => ({
+                    productName: item.productName,
+                    size: `${item.unitSize} ${item.unit}`,
+                    price: item.sellingPrice,
+                    inStock: item.inStock || 0
+                }));
+            } else if (reportType === 'returns') {
+                headerConfig = [
+                    { key: 'date', label: 'Date' },
+                    { key: 'product', label: 'Product' },
+                    { key: 'quantity', label: 'Quantity' },
+                    { key: 'reason', label: 'Reason' }
+                ];
+                
+                formattedData = filteredData.map(item => ({
+                    date: new Date(item.createdAt).toLocaleDateString(),
+                    product: item.products.map(p => p.product?.productName).join(' | '),
+                    quantity: item.products.map(p => p.quantity).reduce((a, b) => a + b, 0),
+                    reason: item.notes || 'N/A'
+                }));
+            }
+            
+            pdfUtils.exportToCSV(
+                formattedData,
+                headerConfig,
+                `${reportType}_report_${new Date().toISOString().slice(0, 10)}.csv`
+            );
+        } catch (error) {
+            console.error('Error exporting CSV:', error);
+        }
+    };
+    
+    const renderReportHeader = () => {
+        const title = `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report`;
+        const dateStr = `Date Range: ${dateRange.startDate} to ${dateRange.endDate}`;
+        
+        return (
+            <div ref={reportHeaderRef} className="mb-4 py-4 bg-white">
+                <div className="text-center">
+                    <h1 className="text-2xl font-bold text-blue-600 mb-2">{title}</h1>
+                    <p className="text-gray-600">{dateStr}</p>
+                </div>
+            </div>
+        );
+    };
+    
+    const [showVisualization, setShowVisualization] = useState(false);
+    
     return (
         <div className='container'>
             <div className="flex flex-col gap-5 pt-4">
@@ -296,42 +226,25 @@ const Reports = () => {
                             </select>
                         </div>
                         
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Date Range
-                            </label>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs text-gray-500">From</label>
-                                    <input
-                                        type="date"
-                                        name="startDate"
-                                        value={dateRange.startDate}
-                                        onChange={handleDateRangeChange}
-                                        className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs text-gray-500">To</label>
-                                    <input
-                                        type="date"
-                                        name="endDate"
-                                        value={dateRange.endDate}
-                                        onChange={handleDateRangeChange}
-                                        className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3"
-                                    />
-                                </div>
-                            </div>
-                        </div>
+                        <ReportFilter dateRange={dateRange} setDateRange={setDateRange} />
                     </div>
                     
-                    <div className="flex space-x-4 mb-6">
+                    <div className="flex flex-wrap space-x-4 mb-6">
                         <button
                             onClick={generatePDF}
+                            disabled={isGeneratingReport}
                             className="inline-flex items-center px-4 py-2 bg-red-100 border border-transparent rounded-md font-semibold text-xs text-red-700 uppercase tracking-widest hover:bg-red-200 active:bg-red-300 focus:outline-none focus:border-red-300 focus:ring ring-red-200 disabled:opacity-25 transition ease-in-out duration-150"
                         >
                             <FaFilePdf className="mr-2" />
-                            Export as PDF
+                            {isGeneratingReport ? 'Generating...' : 'Export as PDF'}
+                        </button>
+                        
+                        <button
+                            onClick={exportToCSV}
+                            className="inline-flex items-center px-4 py-2 bg-green-100 border border-transparent rounded-md font-semibold text-xs text-green-700 uppercase tracking-widest hover:bg-green-200 active:bg-green-300 focus:outline-none focus:border-green-300 focus:ring ring-green-200 disabled:opacity-25 transition ease-in-out duration-150"
+                        >
+                            <FaFileExcel className="mr-2" />
+                            Export as CSV
                         </button>
                         
                         <button
@@ -341,9 +254,28 @@ const Reports = () => {
                             <FaRegListAlt className="mr-2" />
                             Update Report
                         </button>
+                        
+                        <button
+                            onClick={() => setShowVisualization(!showVisualization)}
+                            className="inline-flex items-center px-4 py-2 bg-purple-100 border border-transparent rounded-md font-semibold text-xs text-purple-700 uppercase tracking-widest hover:bg-purple-200 active:bg-purple-300 focus:outline-none focus:border-purple-300 focus:ring ring-purple-200 disabled:opacity-25 transition ease-in-out duration-150"
+                        >
+                            <FaChartBar className="mr-2" />
+                            {showVisualization ? 'Hide Visualization' : 'Show Visualization'}
+                        </button>
                     </div>
                     
-                    <div className="overflow-x-auto bg-white shadow-inner rounded-lg">
+                    {showVisualization && (
+                        <div ref={visualizationRef}>
+                            <ReportVisualization 
+                                reportType={reportType} 
+                                data={filteredData} 
+                            />
+                        </div>
+                    )}
+                    
+                    {renderReportHeader()}
+                    
+                    <div ref={reportTableRef} className="overflow-x-auto bg-white shadow-inner rounded-lg">
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>
@@ -398,13 +330,13 @@ const Reports = () => {
                                                 <>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(item.createdAt).toLocaleDateString()}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        {item.products.map(p => p.product?.productName).join(', ')}
+                                                        {item.products?.map(p => p.product?.productName).join(', ')}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        {item.products.map(p => p.quantity).reduce((a, b) => a + b, 0)}
+                                                        {item.products?.map(p => p.quantity).reduce((a, b) => a + b, 0)}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        ₱{item.products.map(p => p.quantity * (p.product?.sellingPrice || 0)).reduce((a, b) => a + b, 0)}
+                                                        ₱{item.products?.map(p => p.quantity * (p.product?.sellingPrice || 0)).reduce((a, b) => a + b, 0)}
                                                     </td>
                                                 </>
                                             )}
@@ -424,10 +356,10 @@ const Reports = () => {
                                                 <>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(item.createdAt).toLocaleDateString()}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        {item.products.map(p => p.product?.productName).join(', ')}
+                                                        {item.products?.map(p => p.product?.productName).join(', ')}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        {item.products.map(p => p.quantity).reduce((a, b) => a + b, 0)}
+                                                        {item.products?.map(p => p.quantity).reduce((a, b) => a + b, 0)}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.notes || 'N/A'}</td>
                                                 </>
@@ -447,49 +379,6 @@ const Reports = () => {
                             </tbody>
                         </table>
                     </div>
-                    
-                    {/* Summary section */}
-                    {filteredData.length > 0 && (
-                        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                            <h3 className="text-lg font-semibold mb-2">Summary</h3>
-                            
-                            {reportType === 'sales' && (
-                                <p className="text-gray-700">
-                                    Total Sales: ₱{filteredData.reduce((sum, item) => {
-                                        return sum + item.products.reduce((productSum, p) => {
-                                            return productSum + (p.quantity * (p.product?.sellingPrice || 0));
-                                        }, 0);
-                                    }, 0).toFixed(2)}
-                                </p>
-                            )}
-                            
-                            {reportType === 'purchases' && (
-                                <p className="text-gray-700">
-                                    Total Items Purchased: {filteredData.reduce((sum, item) => {
-                                        return sum + (item.products?.length || 0);
-                                    }, 0)}
-                                </p>
-                            )}
-                            
-                            {reportType === 'returns' && (
-                                <p className="text-gray-700">
-                                    Total Items Returned: {filteredData.reduce((sum, item) => {
-                                        return sum + item.products.reduce((productSum, p) => {
-                                            return productSum + p.quantity;
-                                        }, 0);
-                                    }, 0)}
-                                </p>
-                            )}
-                            
-                            {reportType === 'inventory' && (
-                                <p className="text-gray-700">
-                                    Total Items in Stock: {filteredData.reduce((sum, item) => {
-                                        return sum + (item.inStock || 0);
-                                    }, 0)}
-                                </p>
-                            )}
-                        </div>
-                    )}
                 </div>
             </div>
         </div>

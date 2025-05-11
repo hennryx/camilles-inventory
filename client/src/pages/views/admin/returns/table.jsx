@@ -1,4 +1,3 @@
-// client/src/pages/views/admin/returns/table.jsx
 import React, { useState, useEffect } from 'react';
 import { IoIosAdd } from "react-icons/io";
 import Swal from 'sweetalert2';
@@ -48,7 +47,6 @@ const Table = ({ data, toggleAdd, handleUpdate, isLoading }) => {
         });
     };
 
-    // Pagination
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);

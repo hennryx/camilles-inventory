@@ -1,4 +1,3 @@
-// client/src/pages/views/admin/dashboard/index.jsx
 import React, { useEffect, useState } from 'react';
 import Card from './card';
 import { BsBoxes } from "react-icons/bs";
@@ -33,7 +32,6 @@ const Dashboard = () => {
 
     useEffect(() => {
         if (data && data.length > 0) {
-            // Calculate recently added products (past 24 hours)
             const now = new Date();
             const yesterday = new Date(now);
             yesterday.setDate(now.getDate() - 1);

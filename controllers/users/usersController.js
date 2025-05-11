@@ -170,13 +170,11 @@ exports.updateProfile = async (req, res) => {
     }
 };
 
-// Update password
 exports.updatePassword = async (req, res) => {
     try {
         const userId = req.user._id;
         const { currentPassword, newPassword } = req.body;
         
-        // Validate input
         if (!currentPassword || !newPassword) {
             return res.status(400).json({
                 success: false,
@@ -184,7 +182,6 @@ exports.updatePassword = async (req, res) => {
             });
         }
         
-        // Validate password requirements
         if (newPassword.length < 8) {
             return res.status(400).json({
                 success: false,
@@ -192,7 +189,6 @@ exports.updatePassword = async (req, res) => {
             });
         }
         
-        // Find the user with password
         const user = await Users.findById(userId).select('+password');
         if (!user) {
             return res.status(404).json({
@@ -201,7 +197,6 @@ exports.updatePassword = async (req, res) => {
             });
         }
         
-        // Check if current password is correct
         const isMatch = await user.matchPassword(currentPassword);
         if (!isMatch) {
             return res.status(401).json({
@@ -210,7 +205,6 @@ exports.updatePassword = async (req, res) => {
             });
         }
         
-        // Update password
         user.password = newPassword;
         await user.save();
         

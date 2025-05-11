@@ -1,4 +1,3 @@
-// client/src/pages/views/admin/purchase/table.jsx
 import React, { useEffect, useState } from 'react'
 import { IoIosAdd } from "react-icons/io";
 import Swal from 'sweetalert2';

@@ -12,17 +12,20 @@ const ForgotPassword = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!email) {
             toast.error('Please enter your email address');
             return;
         }
-        
+
         try {
             setIsLoading(true);
-            
-            const response = await axios.post(`${ENDPOINT}/auth/forgot-password`, { email });
-            
+
+            const response = await axios.post(`${ENDPOINT}/auth/forgot-password`, {
+                email,
+                frontendUrl: window.location.origin
+            });
+
             setSuccess(true);
             setMessage('Password reset link sent! Please check your email.');
             toast.success('Password reset email sent');
@@ -46,13 +49,13 @@ const ForgotPassword = () => {
                         Enter your email address and we'll send you a link to reset your password
                     </p>
                 </div>
-                
+
                 {message && (
                     <div className={`rounded-md p-4 ${success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
                         <p>{message}</p>
                     </div>
                 )}
-                
+
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                     <div className="rounded-md shadow-sm -space-y-px">
                         <div>
@@ -81,7 +84,7 @@ const ForgotPassword = () => {
                             {isLoading ? 'Sending...' : success ? 'Email Sent' : 'Send Reset Link'}
                         </button>
                     </div>
-                    
+
                     <div className="text-sm text-center">
                         <Link to="/" className="font-medium text-indigo-600 hover:text-indigo-500">
                             Back to Login

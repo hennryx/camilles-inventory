@@ -1,4 +1,3 @@
-// client/src/pages/views/admin/dashboard/table.jsx
 import React, { useEffect, useState } from 'react'
 import useAuthStore from '../../../../services/stores/authStore';
 import useTransactionsStore from '../../../../services/stores/transactions/transactionStore';
@@ -20,7 +19,6 @@ const Table = () => {
     const { getTransactions, data } = useTransactionsStore();
     const [allData, setAllData] = useState([]);
 
-    // Filter options
     const filterOptions = {
         date: {
             type: 'date',
@@ -50,13 +48,11 @@ const Table = () => {
         }
     }, [data]);
 
-    // Apply filters and search
     const applyFilters = () => {
         if (!data) return;
         
         let filteredData = [...data];
         
-        // Filter by search term
         if (searchTerm) {
             const term = searchTerm.toLowerCase();
             filteredData = filteredData.filter(item =>
@@ -72,7 +68,6 @@ const Table = () => {
             );
         }
         
-        // Filter by date range
         if (filters.date.start || filters.date.end) {
             filteredData = filteredData.filter(item => {
                 const createdAt = new Date(item.createdAt);
@@ -95,7 +90,6 @@ const Table = () => {
             });
         }
         
-        // Filter by transaction type
         if (filters.transactionType) {
             filteredData = filteredData.filter(item => 
                 item.transactionType === filters.transactionType
@@ -112,7 +106,6 @@ const Table = () => {
         setCurrentPage(1);
     };
 
-    // Handle filter changes
     const handleApplyFilter = (newFilters) => {
         setFilters(newFilters);
     };

@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react'
-import { IoIosAdd } from "react-icons/io";
-import Swal from 'sweetalert2';
-import { ENDPOINT } from '../../../../services/utilities';
-import NoImage from "../../../../assets/No-Image.png"
-import { Checkbox } from '@headlessui/react';
 import useProductsStore from '../../../../services/stores/products/productsStore';
 import useAuthStore from '../../../../services/stores/authStore';
+
+import { ENDPOINT } from '../../../../services/utilities';
+import NoImage from "../../../../assets/No-Image.png"
+
+import Swal from 'sweetalert2';
+import { Checkbox } from '@headlessui/react';
+import { IoIosAdd } from "react-icons/io";
+import { RiFileReduceLine } from "react-icons/ri";
 
 const Table = ({ data, totalItems, toggleAdd, handleUpdate, setToggleReduce, setReduceProduct, isLoading, loadData }) => {
     const { deleteProduct } = useProductsStore();
@@ -14,9 +17,6 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, setToggleReduce, set
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(5);
     const [selectedPrd, setSelectedPrd] = useState([])
-
-    console.log("-----------", data, data.length);
-    
 
     const handleDelete = (e, _id) => {
         e.preventDefault();
@@ -203,7 +203,7 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, setToggleReduce, set
                                     className='flex items-center justify-center px-4 py-3 bg-green-200 rounded-md text-green-800 whitespace-nowrap hover:bg-green-300'
                                     onClick={() => openReduceDrawer()}
                                 >
-                                    <IoIosAdd />
+                                    <RiFileReduceLine />
                                     Reduce {selectedPrd.length > 1 ? 'All' : 'Item'} ({selectedPrd.length})
                                 </button>
                             )}

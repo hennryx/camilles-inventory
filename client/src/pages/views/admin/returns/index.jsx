@@ -1,4 +1,3 @@
-// client/src/pages/views/admin/returns/index.jsx
 import React, { useState, useEffect } from 'react';
 import useAuthStore from '../../../../services/stores/authStore';
 import useProductsStore from '../../../../services/stores/products/productsStore';

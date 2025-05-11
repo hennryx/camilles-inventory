@@ -1,4 +1,3 @@
-// client/src/pages/views/admin/dashboard/salesChart.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import Chart from 'chart.js/auto';
 
@@ -23,7 +22,6 @@ const SalesChart = ({ timeFilter, transactionData }) => {
         let salesData = [];
 
         if (timeFilter === 'day') {
-            // Group by hour of the day
             labels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
             
             const today = new Date();
@@ -47,7 +45,6 @@ const SalesChart = ({ timeFilter, transactionData }) => {
                 salesData[hour] += total;
             });
         } else if (timeFilter === 'month') {
-            // Group by day of the month
             const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
             labels = Array.from({ length: daysInMonth }, (_, i) => `${i + 1}`);
             
@@ -62,7 +59,7 @@ const SalesChart = ({ timeFilter, transactionData }) => {
             
             monthTransactions.forEach(transaction => {
                 const txDate = new Date(transaction.createdAt);
-                const day = txDate.getDate() - 1; // Adjust for zero-based array
+                const day = txDate.getDate() - 1; 
                 
                 const total = transaction.products.reduce((sum, product) => {
                     return sum + (product.quantity * (product.product?.sellingPrice || 0));
@@ -71,7 +68,6 @@ const SalesChart = ({ timeFilter, transactionData }) => {
                 salesData[day] += total;
             });
         } else if (timeFilter === 'year') {
-            // Group by month of the year
             labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             
             const thisYear = new Date(now.getFullYear(), 0, 1);
