@@ -9,14 +9,64 @@ import Swal from 'sweetalert2';
 import { Checkbox } from '@headlessui/react';
 import { IoIosAdd } from "react-icons/io";
 import { RiFileReduceLine } from "react-icons/ri";
+import FilterMenu from '../../../../components/filterMenu';
 
 const Table = ({ data, totalItems, toggleAdd, handleUpdate, setToggleReduce, setReduceProduct, isLoading, loadData }) => {
     const { deleteProduct } = useProductsStore();
     const { token } = useAuthStore()
+    const [allData, setAllData] = useState(data)
+    const [searchResult, setSearchResult] = useState("")
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(5);
     const [selectedPrd, setSelectedPrd] = useState([])
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [filters, setFilters] = useState({
+        category: '',
+    });
+
+    const filterOptions = {
+        category: {
+            type: 'select',
+            label: 'Category',
+            choices: [
+                ...new Set(allData?.map(item => item?.category))
+            ]
+                .filter(Boolean)
+                .map(name => ({ label: name, value: name }))
+        }
+    };
+
+    const applyFilters = () => {
+        let filteredData = [...allData];
+        
+        // Filter by category
+        if (filters.category) {
+            filteredData = filteredData.filter(item => 
+                item.category === filters.category
+            );
+        }
+        
+        if (filteredData.length === 0) {
+            setSearchResult("No results match your filters");
+        } else {
+            setSearchResult("");
+        }
+        
+        setAllData(filteredData);
+        setCurrentPage(1);
+    };
+
+
+    useEffect(() => {
+        if (data) {
+            setAllData(data);
+
+            if(filters.category) {
+                applyFilters();
+            }
+        }
+    }, [data, filters]);
 
     const handleDelete = (e, _id) => {
         e.preventDefault();
@@ -31,19 +81,24 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, setToggleReduce, set
             confirmButtonText: "Yes, Delete it!"
         }).then(async (result) => {
             if (result.isConfirmed) {
-                await deleteProduct({_id}, token)
+                await deleteProduct({ _id }, token)
             }
         });
     }
 
-    useEffect(() => {
-        console.log(selectedPrd);
-        
-    }, [selectedPrd])
+    const handleApplyFilter = (newFilters) => {
+        setFilters(newFilters);
+    };
 
     useEffect(() => {
-        loadData();
-    }, [currentPage, itemsPerPage, searchTerm]);
+        if(searchTerm === "") {
+            loadData({ page: currentPage, limit: itemsPerPage, search: searchTerm });
+        }
+    }, [searchTerm]);
+
+    const handleSearch = () => {
+        loadData({ page: currentPage, limit: itemsPerPage, search: searchTerm });
+    }
 
     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
@@ -56,19 +111,19 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, setToggleReduce, set
 
     const handleSearchChange = (e) => {
         setSearchTerm(e.target.value);
-        setCurrentPage(1); 
+        setCurrentPage(1);
     };
 
     const handleItemSelection = (item) => {
         if (Array.isArray(item)) {
-            if (selectedPrd.length === data.length) {
+            if (selectedPrd.length === allData.length) {
                 setSelectedPrd([]);
             } else {
-                setSelectedPrd([...data]);
+                setSelectedPrd([...allData]);
             }
         } else {
             const isSelected = selectedPrd.some(product => product._id === item._id);
-            
+
             if (isSelected) {
                 setSelectedPrd(selectedPrd.filter(product => product._id !== item._id));
             } else {
@@ -79,15 +134,13 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, setToggleReduce, set
 
     const openReduceDrawer = (productsToReduce = null) => {
         const productsForDrawer = productsToReduce || selectedPrd;
-        
+
         if (productsForDrawer && productsForDrawer.length > 0) {
             setReduceProduct(productsForDrawer);
             setToggleReduce(true);
         }
     };
 
-
-    // Calculate pagination numbers based on backend response
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     const pageNumbers = [];
     for (let i = 1; i <= totalPages; i++) {
@@ -181,15 +234,31 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, setToggleReduce, set
                     <div className='flex justify-between p-4'>
                         <h3 className='text-xl'>Products</h3>
                         <div className='flex flex-row gap-4 justify-center items-center'>
-                            <label className="input bg-transparent border-2 border-gray-500 rounded-md">
-                                <svg className="h-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g strokeLinejoin="round" strokeLinecap="round" strokeWidth="2.5" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></g></svg>
+                            <label className="input bg-transparent border-2 border-gray-500 rounded-md pl-0">
+                                <div
+                                    className='h-full flex items-center cursor-pointer p-2 bg-blue-400'
+                                    onClick={handleSearch}
+                                >
+                                    <svg className="h-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g strokeLinejoin="round" strokeLinecap="round" strokeWidth="2.5" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></g></svg>
+                                </div>
                                 <input
+                                    className='flex-1'
                                     type="search"
                                     value={searchTerm}
                                     onChange={handleSearchChange}
                                     placeholder="Search"
                                 />
                             </label>
+
+                            <div className="relative">
+                                <FilterMenu
+                                    isOpen={isFilterOpen}
+                                    toggleFilter={setIsFilterOpen}
+                                    onApplyFilter={handleApplyFilter}
+                                    filters={filters}
+                                    filterOptions={filterOptions}
+                                />
+                            </div>
                             <button
                                 className='flex items-center justify-center px-4 py-3 bg-green-200 rounded-md text-green-800 whitespace-nowrap hover:bg-green-300'
                                 onClick={() => toggleAdd((prev) => !prev)}
@@ -214,8 +283,8 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, setToggleReduce, set
                     <tr className='text-black bg-gray-300'>
                         <th>
                             <Checkbox
-                                checked={selectedPrd.length === data.length && data.length > 0}
-                                onChange={() => handleItemSelection(data)}
+                                checked={selectedPrd.length === allData.length && allData.length > 0}
+                                onChange={() => handleItemSelection(allData)}
                                 className="group block size-4 rounded-full bg-white border border-gray-400 data-[checked]:bg-blue-200"
                             >
                                 <svg className="stroke-blue-800 opacity-0 group-data-[checked]:opacity-100" viewBox="0 0 14 14" fill="none">
@@ -237,8 +306,12 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, setToggleReduce, set
                         <tr>
                             <td colSpan={5} className='text-center py-4 text-gray-500'>Loading...</td>
                         </tr>
-                    ) : data && data.length > 0 ? (
-                        data.map((item, i) => (
+                    ) : searchResult ? (
+                        <tr>
+                            <td colSpan={6} className='text-center py-4 text-gray-500'>{searchResult}</td>
+                        </tr>
+                    ) : allData && allData.length > 0 ? (
+                        allData.map((item, i) => (
                             <tr key={i}>
                                 <td>
                                     <Checkbox
@@ -290,7 +363,7 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, setToggleReduce, set
                     )}
                 </tbody>
             </table>
-            {renderPagination()}
+            {!searchResult && renderPagination()}
         </div>
     )
 }

@@ -6,13 +6,14 @@ import NoImage from "../../../../assets/No-Image.png"
 import { ENDPOINT } from '../../../../services/utilities';
 
 const EmbededModal = ({ setIsOpen, setNewProduct, newProduct, isUpdate, setIsUpdate }) => {
-
     const [imagePreview, setImagePreview] = useState(null);
     const [errorMsg, setErrorMsg] = useState("");
     const fileInputRef = useRef(null);
 
     const { addProduct, updateProduct } = useProductsStore();
     const { token, auth } = useAuthStore();
+
+    const categories = ["Energy Drink", "Soda", "Beer", "Probiotics", "Fruit juice", "Water"]
 
     const handleProductData = (key, value) => {
         setNewProduct((prev) => ({
@@ -55,28 +56,27 @@ const EmbededModal = ({ setIsOpen, setNewProduct, newProduct, isUpdate, setIsUpd
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const { productName, image, unit, unitSize, sellingPrice, inStock, minStock } = newProduct;
+        const { productName, image, unit, unitSize, sellingPrice, category } = newProduct;
 
         console.log(typeof sellingPrice);
-        
+
         // Validation
         if (
             productName.trim() === "" ||
             !image ||
             String(unit).trim() === "" ||
             String(unitSize).trim() === "" ||
-            String(sellingPrice).trim() === ""
+            String(sellingPrice).trim() === "" ||
+            String(category).trim() === ""
         ) {
             setErrorMsg("Please fill all the required fields!");
             return;
         }
 
-        if(
-            Number(sellingPrice) < 0 ||
-            Number(inStock) < 0 ||
-            Number(minStock) < 0
+        if (
+            Number(sellingPrice) < 0
         ) {
-            setErrorMsg(`Invalid ${Number(sellingPrice) < 0 ? "price" : Number(inStock) < 0  ? "stock" : "minimum stock"} cannot be lower than 0`);
+            setErrorMsg(`Invalid price, cannot be lower than 0`);
             return;
         }
 
@@ -87,9 +87,8 @@ const EmbededModal = ({ setIsOpen, setNewProduct, newProduct, isUpdate, setIsUpd
         formData.append('unit', unit);
         formData.append('unitSize', unitSize);
         formData.append('sellingPrice', sellingPrice);
-        formData.append('inStock', inStock);
-        formData.append('minStock', minStock);
         formData.append('createdBy', auth?._id);
+        formData.append('category', category);
 
         if (isUpdate) {
             Swal.fire({
@@ -136,7 +135,7 @@ const EmbededModal = ({ setIsOpen, setNewProduct, newProduct, isUpdate, setIsUpd
             unit: "",
             unitSize: "",
             sellingPrice: "",
-            inStock: 0
+            category: ""
         });
         setImagePreview(null);
     }
@@ -175,7 +174,7 @@ const EmbededModal = ({ setIsOpen, setNewProduct, newProduct, isUpdate, setIsUpd
                                         />
                                     ) : (
                                         <img
-                                            src={isUpdate ? `${ENDPOINT}/assets/products/${newProduct.image}` :  NoImage}
+                                            src={isUpdate ? `${ENDPOINT}/assets/products/${newProduct.image}` : NoImage}
                                             alt="Product placeholder"
                                             className="h-40 w-40 text-gray-400"
                                             onError={(e) => {
@@ -276,7 +275,7 @@ const EmbededModal = ({ setIsOpen, setNewProduct, newProduct, isUpdate, setIsUpd
                             </div>
 
                             {/* Selling Price */}
-                            <div className="sm:col-span-4">
+                            <div className="sm:col-span-2">
                                 <label htmlFor="selling-price" className="block text-sm/6 font-medium text-gray-900">
                                     <span className='required'></span>
                                     Selling Price
@@ -296,6 +295,29 @@ const EmbededModal = ({ setIsOpen, setNewProduct, newProduct, isUpdate, setIsUpd
                                         onChange={(e) => handleProductData(e.target.name, e.target.value)}
                                         className="block w-full pl-7 rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                                     />
+                                </div>
+                            </div>
+
+                            {/* Category */}
+                            <div className="sm:col-span-2">
+                                <label htmlFor="category" className="block text-sm/6 font-medium text-gray-900">
+                                    <span className='required'></span>
+                                    Category
+                                </label>
+                                <div className="mt-2">
+                                    <select
+                                        required
+                                        id="category"
+                                        name="category"
+                                        value={newProduct.category}
+                                        onChange={(e) => handleProductData(e.target.name, e.target.value)}
+                                        className="block select w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                    >
+                                        <option value="">Select Category</option>
+                                        {categories.map((item, i)=> (
+                                            <option key={i} value={item}>{item}</option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
                         </div>

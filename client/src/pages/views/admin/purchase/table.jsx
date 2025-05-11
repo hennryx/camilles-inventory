@@ -21,7 +21,6 @@ const Table = ({ data, toggleAdd, handleUpdate }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(5);
 
-    // Filter options configuration
     const filterOptions = {
         date: {
             type: 'date',
@@ -56,11 +55,9 @@ const Table = ({ data, toggleAdd, handleUpdate }) => {
         });
     }
 
-    // Apply filters to data
     const applyFilters = () => {
         let filteredData = [...data];
         
-        // Filter by search term
         if (searchTerm) {
             const term = searchTerm.toLowerCase();
             filteredData = filteredData.filter(item =>
@@ -71,7 +68,6 @@ const Table = ({ data, toggleAdd, handleUpdate }) => {
             );
         }
         
-        // Filter by date range
         if (filters.date.start || filters.date.end) {
             filteredData = filteredData.filter(item => {
                 const purchaseDate = new Date(item.purchaseDate);

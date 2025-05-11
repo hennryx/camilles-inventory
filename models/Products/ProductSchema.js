@@ -28,6 +28,10 @@ const ProductsSchema = new mongoose.Schema({
 		type: mongoose.Schema.ObjectId,
 		ref: 'User',
 		required: true
+	},
+
+	category: {
+		type: String,
 	}
 }, {
 	timestamps: true

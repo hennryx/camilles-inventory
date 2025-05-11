@@ -73,10 +73,8 @@ exports.getAllProducts = async (req, res) => {
 // Add new product
 exports.addProduct = async (req, res) => {
     try {
-        // Destructure fields from the request body
-        const { productName, unit, unitSize, sellingPrice, inStock, createdBy } = req.body;
+        const { productName, unit, unitSize, sellingPrice, createdBy, category } = req.body;
 
-        // Validate required fields
         if (!productName || !unit || !unitSize || !sellingPrice) {
             return res.status(400).json({
                 success: false,
@@ -84,16 +82,14 @@ exports.addProduct = async (req, res) => {
             });
         }
 
-
-        // Save file path/name in database
         const product = await Product.create({
             productName,
-            image: req.file ? req.file.filename : null, // Store filename
+            image: req.file ? req.file.filename : null,
             unit,
             unitSize,
             sellingPrice,
-            inStock: inStock || 0,
-            createdBy
+            createdBy,
+            category
         });
 
         res.status(201).json({
@@ -112,8 +108,7 @@ exports.addProduct = async (req, res) => {
 // Update product
 exports.updateProduct = async (req, res) => {
     try {
-        // Update other fields
-        const { productName, unit, unitSize, sellingPrice, inStock, _id } = req.body;
+        const { productName, unit, unitSize, sellingPrice, _id, category } = req.body;
 
         // Find existing product
         const product = await Product.findById(_id);
@@ -142,7 +137,7 @@ exports.updateProduct = async (req, res) => {
         if (unit) product.unit = unit;
         if (unitSize) product.unitSize = unitSize;
         if (sellingPrice) product.sellingPrice = sellingPrice;
-        if (inStock !== undefined) product.inStock = inStock;
+        if (category) product.category = category;
 
         await product.save();
 

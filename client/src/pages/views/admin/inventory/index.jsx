@@ -16,7 +16,7 @@ const info = {
     unitSize: "",
     sellingPrice: "",
     createdby: "",
-    minStock: 10,
+    category: ""
 }
 const Inventory = () => {
     const { token } = useAuthStore();
@@ -38,6 +38,7 @@ const Inventory = () => {
     const handleFetch = async (params) => {
         await getProducts(token, params)
     }
+    
     useEffect(() => {
         if (token) {
             handleFetch({
