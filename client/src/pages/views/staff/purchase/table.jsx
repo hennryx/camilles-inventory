@@ -246,13 +246,13 @@ const Table = ({ data, toggleAdd, handleUpdate }) => {
                                     filterOptions={filterOptions}
                                 />
                             </div>
-                            <button
+                            {/* <button
                                 className='flex items-center justify-center px-4 py-3 bg-green-200 rounded-md text-green-800 whitespace-nowrap hover:bg-green-300'
                                 onClick={() => toggleAdd((prev) => !prev)}
                             >
                                 <IoIosAdd />
                                 Add New Purchase
-                            </button>
+                            </button> */}
                         </div>
                     </div>
                 </caption>

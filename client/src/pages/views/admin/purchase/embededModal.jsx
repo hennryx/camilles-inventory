@@ -25,6 +25,8 @@ const EmbededModal = ({ setIsOpen, setNewPurchase, newPurchase, isUpdate, setIsU
 
     useEffect(() => {
         if (SuppliersData) {
+            console.log(SuppliersData);
+            
             setSuppliers(SuppliersData)
         }
     }, [SuppliersData])

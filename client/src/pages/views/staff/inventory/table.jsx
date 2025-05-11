@@ -15,9 +15,6 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, setToggleReduce, set
     const [itemsPerPage, setItemsPerPage] = useState(5);
     const [selectedPrd, setSelectedPrd] = useState([])
 
-    console.log("-----------", data, data.length);
-    
-
     const handleDelete = (e, _id) => {
         e.preventDefault();
 
@@ -190,13 +187,13 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, setToggleReduce, set
                                     placeholder="Search"
                                 />
                             </label>
-                            <button
+                            {/* <button
                                 className='flex items-center justify-center px-4 py-3 bg-green-200 rounded-md text-green-800 whitespace-nowrap hover:bg-green-300'
                                 onClick={() => toggleAdd((prev) => !prev)}
                             >
                                 <IoIosAdd />
                                 Add New Product
-                            </button>
+                            </button> */}
 
                             {selectedPrd.length > 0 && (
                                 <button
