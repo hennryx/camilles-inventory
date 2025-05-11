@@ -33,7 +33,11 @@ const Dashboard = () => {
             const availableProducts = productsData.filter(product => product.inStock > 0);
             setProducts(availableProducts);
 
-            const uniqueCategories = [...new Set(availableProducts.map(product => product.unit))];
+            console.log(availableProducts);
+            
+            const uniqueCategories = [...new Set(availableProducts.map(product => product.category))];
+            console.log(uniqueCategories);
+            
             setCategories(uniqueCategories);
 
             setLoading(false);
@@ -103,7 +107,7 @@ const Dashboard = () => {
 
     const filteredProducts = products.filter(product => {
         const matchesSearch = product.productName.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesCategory = filterCategory === 'all' || product.unit === filterCategory;
+        const matchesCategory = filterCategory === 'all' || product.category === filterCategory;
 
         return matchesSearch && matchesCategory;
     });
