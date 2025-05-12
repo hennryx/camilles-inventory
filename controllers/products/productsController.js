@@ -53,6 +53,7 @@ exports.getAllProducts = async (req, res) => {
 
         const outStock = productsWithStock.filter(p => p.inStock === 0).length;
 
+        const topProducts = await getTopSellingProductsThisMonth()
         res.status(200).json({
             success: true,
             totalItems,
@@ -60,7 +61,8 @@ exports.getAllProducts = async (req, res) => {
             outStock,
             currentPage: page,
             totalPages: Math.ceil(totalItems / limit),
-            data: productsWithStock
+            data: productsWithStock,
+            topProducts
         });
     } catch (error) {
         res.status(500).json({
@@ -69,6 +71,54 @@ exports.getAllProducts = async (req, res) => {
         });
     }
 }
+
+const getTopSellingProductsThisMonth = async () => {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+    const topProducts = await Transaction.aggregate([
+        {
+            $match: {
+                transactionType: 'SALE',
+                createdAt: {
+                    $gte: startOfMonth,
+                    $lt: endOfMonth
+                }
+            }
+        },
+        { $unwind: '$products' },
+        {
+            $group: {
+                _id: '$products.product',
+                totalSold: { $sum: '$products.quantity' }
+            }
+        },
+        { $sort: { totalSold: -1 } },
+        { $limit: 10 },
+        {
+            $lookup: {
+                from: 'products',
+                localField: '_id',
+                foreignField: '_id',
+                as: 'productInfo'
+            }
+        },
+        { $unwind: '$productInfo' },
+        {
+            $project: {
+                productId: '$_id',
+                name: '$productInfo.productName',
+                totalSold: 1,
+                image: '$productInfo.image',
+                price: "$productInfo.sellingPrice"
+            }
+        }
+    ]);
+
+    return topProducts;
+};
+
 
 // Add new product
 exports.addProduct = async (req, res) => {
@@ -214,13 +264,13 @@ exports.deductProductStock = async (req, res) => {
         const deductionDetails = [];
         const processedProducts = [];
         let remainingToDeduct = 0;
-        const supplierIds = new Set(); 
+        const supplierIds = new Set();
 
         for (const productId of products) {
             remainingToDeduct = quantity;
 
             if (!mongoose.Types.ObjectId.isValid(productId)) {
-                continue; 
+                continue;
             }
 
             const batches = await ProductBatch.find({

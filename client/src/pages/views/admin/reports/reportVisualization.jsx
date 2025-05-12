@@ -13,6 +13,8 @@ const ReportVisualization = ({ reportType, data }) => {
     });
 
     useEffect(() => {
+        console.log(data);
+        
         if (!data || data.length === 0 || !canvasRef.current) return;
 
         if (chartRef.current) {

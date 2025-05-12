@@ -4,6 +4,7 @@ import { create } from "zustand";
 
 const useProductsStore = create((set, get) => ({
     data: [],
+    topProducts: [],
     product: {},
     isSuccess: false,
     message: "",
@@ -27,6 +28,7 @@ const useProductsStore = create((set, get) => ({
                     minimumStock: res.minimumStock,
                     outStock: res.outStock,
                 },
+                topProducts: res.topProducts,
                 message: res.message,
                 isSuccess: res.success,
                 isLoading: false
