@@ -218,7 +218,7 @@ const Table = ({ data, toggleAdd, handleUpdate, isLoading }) => {
                         <th>Products</th>
                         <th>Quantity</th>
                         <th>Reason</th>
-                        <th>Action</th>
+                        {/* <th>Action</th> */}
                     </tr>
                 </thead>
                 <tbody>
@@ -246,7 +246,7 @@ const Table = ({ data, toggleAdd, handleUpdate, isLoading }) => {
                                     ))}
                                 </td>
                                 <td>{item.notes}</td>
-                                <td className='flex gap-2'>
+                                {/* <td className='flex gap-2'>
                                     <button
                                         className='p-2 bg-blue-200 text-blue-800 rounded-md hover:bg-blue-300'
                                         onClick={() => handleUpdate(item)}
@@ -259,7 +259,7 @@ const Table = ({ data, toggleAdd, handleUpdate, isLoading }) => {
                                     >
                                         Delete
                                     </button>
-                                </td>
+                                </td> */}
                             </tr>
                         ))
                     )}

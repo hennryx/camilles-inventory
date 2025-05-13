@@ -22,13 +22,13 @@ const access = [
     icon: BsBox,
     element: Inventory,
   },
-  
+  /* 
   {
     name: "Purchase",
     path: "/purchase",
     icon: LuClipboardList,
     element: Purchase,
-  },
+  }, */
 
   {
     name: "Returns",

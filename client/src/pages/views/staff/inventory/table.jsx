@@ -298,7 +298,7 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, setToggleReduce, set
                         <th>Size</th>
                         <th>Price</th>
                         <th>Stock</th>
-                        <th>Action</th>
+                        {/* <th>Action</th> */}
                     </tr>
                 </thead>
                 <tbody className='text-gray-500'>
@@ -340,7 +340,7 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, setToggleReduce, set
                                 <td>{item.unitSize + " " + item.unit}</td>
                                 <td>{item.sellingPrice}</td>
                                 <td>{item.inStock}</td>
-                                <td className='flex flex-row justify-start items-center gap-2 p-2'>
+                                {/* <td className='flex flex-row justify-start items-center gap-2 p-2'>
                                     <button
                                         className='p-2 bg-blue-200 text-blue-800 rounded-md hover:bg-blue-300'
                                         onClick={() => handleUpdate(item)}
@@ -353,7 +353,7 @@ const Table = ({ data, totalItems, toggleAdd, handleUpdate, setToggleReduce, set
                                     >
                                         Delete
                                     </button>
-                                </td>
+                                </td> */}
                             </tr>
                         ))
                     ) : (
