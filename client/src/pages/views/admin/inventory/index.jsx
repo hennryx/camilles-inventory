@@ -52,19 +52,20 @@ const Inventory = () => {
         if (data) {
             setProductsdata(data);
             setStocksInfo(productInfo);
-            console.log(productInfo);
             
         }
     }, [data])
 
     useEffect(() => {
         if (isSuccess && message) {
-            console.log("--3", data);
-
             setToggleAdd(false)
             setToggleReduce(false)
 
             setNewProduct(info)
+            handleFetch({
+                page: 1,
+                limit: 5,
+            })
 
             if(data) {
                 setProductsdata(data);
