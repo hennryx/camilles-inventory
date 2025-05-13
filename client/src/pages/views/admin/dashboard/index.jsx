@@ -135,7 +135,6 @@ const Dashboard = () => {
                             />
                         </div>
 
-                        {/* Fast Moving Products Section (1/4 width) */}
                         <div className="lg:w-1/4 bg-gray-50 rounded-lg p-5 shadow-inner">
                             <h2 className="text-xl font-semibold text-gray-800 mb-4 pb-2 border-b-2 border-blue-200 flex items-center gap-2">
                                 <FaFire className="text-red-500" /> Fast Moving Products
@@ -155,7 +154,7 @@ const Dashboard = () => {
                                             />
                                             <div className="flex flex-col">
                                                 <h3 className="text-lg font-medium text-gray-800">{item.name}</h3>
-                                                <p className="text-sm text-gray-500">${parseFloat(item.price).toFixed(2)}</p>
+                                                <p className="text-sm text-gray-500">₱{parseFloat(item.price).toFixed(2)}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">

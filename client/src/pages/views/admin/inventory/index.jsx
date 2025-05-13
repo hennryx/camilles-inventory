@@ -52,6 +52,8 @@ const Inventory = () => {
         if (data) {
             setProductsdata(data);
             setStocksInfo(productInfo);
+            console.log(productInfo);
+            
         }
     }, [data])
 
@@ -119,7 +121,7 @@ const Inventory = () => {
                                 <div className='border-2 border-blue-200 h-10'></div>
                                 <Card title={"Stock out:"} textClr={'text-red-800'} boxClr={'bg-red-200'} logo={FaBoxOpen} count={stocksInfo.outStock || 0} />
                                 <div className='border-2 border-blue-200 h-10'></div>
-                                <Card title={"Stock low:"} textClr={'text-yellow-800'} boxClr={'bg-yellow-200'} logo={BsBoxSeamFill} count={stocksInfo.minStock || 0} />
+                                <Card title={"Stock low:"} textClr={'text-yellow-800'} boxClr={'bg-yellow-200'} logo={BsBoxSeamFill} count={stocksInfo.minimumStock || 0} />
                             </div>
                         </div>
                     </div>

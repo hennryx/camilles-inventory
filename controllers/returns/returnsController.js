@@ -40,24 +40,20 @@ exports.saveReturn = async (req, res) => {
             notes,
             transactionType,
             createdBy,
-            suppliers: [] // Returns may not have associated suppliers
+            suppliers: []
         });
         
-        // Update product stock (increase stock for returned products)
         for (const item of products) {
-            // Find the latest batch of this product to add the returned items
             const latestBatch = await ProductBatch.findOne({
                 'products.product': item.product
             }).sort({ createdAt: -1 });
             
             if (latestBatch) {
-                // Find the product in the batch
                 const productIndex = latestBatch.products.findIndex(
                     p => p.product.toString() === item.product
                 );
                 
                 if (productIndex !== -1) {
-                    // Increase remaining stock
                     latestBatch.products[productIndex].remainingStock += item.quantity;
                     await latestBatch.save();
                 }

@@ -9,7 +9,7 @@ import Swal from 'sweetalert2';
 const Returns = () => {
     const { token } = useAuthStore();
     const { getProducts } = useProductsStore();
-    const { getReturns, data, isSuccess, isLoading, message, reset } = useReturnsStore();
+    const { getReturns, data, isSuccess, returnData: _returnData, isLoading, message, reset } = useReturnsStore();
     
     const [toggleAdd, setToggleAdd] = useState(false);
     const [returnsData, setReturnsData] = useState([]);
@@ -55,6 +55,11 @@ const Returns = () => {
             });
             
             reset();
+
+            if(_returnData) {
+                getReturns(token);
+                getProducts(token);
+            }
         } else if (message) {
             Swal.fire({
                 title: "Error!",

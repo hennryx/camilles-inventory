@@ -49,7 +49,7 @@ exports.getAllProducts = async (req, res) => {
             inStock: stockMap[prod._id.toString()] || 0
         }));
 
-        const minimumStock = productsWithStock.filter(p => p.inStock <= 10).length;
+        const minimumStock = productsWithStock.filter(p => p.inStock <= 10 && p.inStock !== 0).length;
 
         const outStock = productsWithStock.filter(p => p.inStock === 0).length;
 
