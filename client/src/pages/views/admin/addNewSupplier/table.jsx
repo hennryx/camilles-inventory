@@ -42,10 +42,9 @@ const Table = ({ data, toggleAdd, handleUpdate }) => {
             }
 
             const filtered = data.filter(user =>
-                user.firstName?.toLowerCase().includes(term) ||
-                user.middleName?.toLowerCase().includes(term) ||
-                user.lastName?.toLowerCase().includes(term) ||
-                user.email?.toLowerCase().includes(term)
+                user.firstname?.toLowerCase().includes(term) ||
+                user.middlename?.toLowerCase().includes(term) ||
+                user.lastname?.toLowerCase().includes(term)
             );
 
             if (filtered.length === 0 && searchTerm) {
