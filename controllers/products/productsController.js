@@ -15,7 +15,6 @@ exports.getAllProducts = async (req, res) => {
 
         let query = {};
         
-        // Only show active products by default unless specifically requested
         if (!showInactive) {
             query.status = 'active';
         }
@@ -55,7 +54,6 @@ exports.getAllProducts = async (req, res) => {
             inStock: stockMap[prod._id.toString()] || 0
         }));
 
-        // Calculate counts for active products only
         const activeQuery = { ...query, status: 'active' };
         const activeProducts = productsWithStock.filter(p => p.status === 'active');
         
