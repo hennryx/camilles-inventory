@@ -11,15 +11,20 @@ exports.getAllProducts = async (req, res) => {
         const limit = parseInt(req.query.limit) || 5;
         const skip = (page - 1) * limit;
         const search = req.query.search || '';
+        const showInactive = req.query.showInactive === 'true';
 
         let query = {};
+        
+        // Only show active products by default unless specifically requested
+        if (!showInactive) {
+            query.status = 'active';
+        }
+        
         if (search) {
-            query = {
-                $or: [
-                    { productName: { $regex: search, $options: 'i' } },
-                    { unit: { $regex: search, $options: 'i' } }
-                ]
-            };
+            query.$or = [
+                { productName: { $regex: search, $options: 'i' } },
+                { unit: { $regex: search, $options: 'i' } }
+            ];
         }
 
         const totalItems = await Product.countDocuments(query);
@@ -29,6 +34,7 @@ exports.getAllProducts = async (req, res) => {
             .limit(limit)
             .sort({ createdAt: -1 })
             .lean();
+            
         const stockData = await ProductBatch.aggregate([
             { $unwind: '$products' },
             {
@@ -49,11 +55,15 @@ exports.getAllProducts = async (req, res) => {
             inStock: stockMap[prod._id.toString()] || 0
         }));
 
-        const minimumStock = productsWithStock.filter(p => p.inStock <= 10 && p.inStock !== 0).length;
+        // Calculate counts for active products only
+        const activeQuery = { ...query, status: 'active' };
+        const activeProducts = productsWithStock.filter(p => p.status === 'active');
+        
+        const minimumStock = activeProducts.filter(p => p.inStock <= 10 && p.inStock !== 0).length;
+        const outStock = activeProducts.filter(p => p.inStock === 0).length;
 
-        const outStock = productsWithStock.filter(p => p.inStock === 0).length;
-
-        const topProducts = await getTopSellingProductsThisMonth()
+        const topProducts = await getTopSellingProductsThisMonth();
+        
         res.status(200).json({
             success: true,
             totalItems,
@@ -111,7 +121,8 @@ const getTopSellingProductsThisMonth = async () => {
                 name: '$productInfo.productName',
                 totalSold: 1,
                 image: '$productInfo.image',
-                price: "$productInfo.sellingPrice"
+                price: "$productInfo.sellingPrice",
+                status: "$productInfo.status"
             }
         }
     ]);
@@ -119,8 +130,6 @@ const getTopSellingProductsThisMonth = async () => {
     return topProducts;
 };
 
-
-// Add new product
 exports.addProduct = async (req, res) => {
     try {
         const { productName, unit, unitSize, sellingPrice, createdBy, category } = req.body;
@@ -155,7 +164,6 @@ exports.addProduct = async (req, res) => {
     }
 }
 
-// Update product
 exports.updateProduct = async (req, res) => {
     try {
         const { productName, unit, unitSize, sellingPrice, _id, category } = req.body;
@@ -169,9 +177,7 @@ exports.updateProduct = async (req, res) => {
             });
         }
 
-        // Check if new image is uploaded
         if (req.file) {
-            // Delete old image if exists
             if (product.image) {
                 const oldImagePath = path.join(__dirname, '../../assets/products', product.image);
                 if (fs.existsSync(oldImagePath)) {
@@ -179,7 +185,6 @@ exports.updateProduct = async (req, res) => {
                 }
             }
 
-            // Update with new image
             product.image = req.file.filename;
         }
 
@@ -205,7 +210,6 @@ exports.updateProduct = async (req, res) => {
     }
 }
 
-// Delete product
 exports.deleteProduct = async (req, res) => {
     try {
         const { _id } = req.body;
@@ -219,20 +223,16 @@ exports.deleteProduct = async (req, res) => {
             });
         }
 
-        // Delete product image if exists
-        if (product.image) {
-            const imagePath = path.join(__dirname, '../../assets/products', product.image);
-            if (fs.existsSync(imagePath)) {
-                fs.unlinkSync(imagePath);
-            }
-        }
-
-        await Product.findByIdAndDelete(_id);
+        const updatedProduct = await Product.findByIdAndUpdate(
+            _id, 
+            { status: 'inactive' }, 
+            { new: true }
+        );
 
         res.status(200).json({
-            product: product,
+            product: updatedProduct,
             success: true,
-            message: "Product deleted successfully!"
+            message: "Product marked as inactive successfully!"
         });
     } catch (error) {
         res.status(500).json({
@@ -242,13 +242,6 @@ exports.deleteProduct = async (req, res) => {
     }
 }
 
-/**
- * Deduct product stock using FEFO (First Expire First Out)
- * @param {String} productId - Product _id
- * @param {Number} quantity - Quantity to deduct from stock
- * @param {String} transactionType - transaction type if it's sale or other
- * @param {String} createdBy - createdBy for who made the transaction
- */
 exports.deductProductStock = async (req, res) => {
     const { products, quantity, ...data } = req.body;
 
@@ -271,6 +264,12 @@ exports.deductProductStock = async (req, res) => {
 
             if (!mongoose.Types.ObjectId.isValid(productId)) {
                 continue;
+            }
+
+            // Check if product is active
+            const product = await Product.findById(productId);
+            if (!product || product.status !== 'active') {
+                continue; // Skip inactive products
             }
 
             const batches = await ProductBatch.find({
@@ -330,7 +329,6 @@ exports.deductProductStock = async (req, res) => {
             }
 
             console.log(`Deducted ${deductedFromThisProduct} units from product ${productId}`);
-
         }
 
         const totalDeducted = quantity - remainingToDeduct;
@@ -338,7 +336,7 @@ exports.deductProductStock = async (req, res) => {
         if (totalDeducted === 0) {
             return res.status(400).json({
                 success: false,
-                message: "Unable to deduct stock. No available inventory.",
+                message: "Unable to deduct stock. No available inventory or products are inactive.",
                 debug: {
                     requestedProducts: products,
                     requestedQuantity: quantity
@@ -353,10 +351,12 @@ exports.deductProductStock = async (req, res) => {
             deductionDetails,
         });
 
-        const _products = await Product.find()
+        // Get active products only for the response
+        const _products = await Product.find({ status: 'active' })
             .limit(5)
             .sort({ createdAt: -1 })
             .lean();
+            
         const stockData = await ProductBatch.aggregate([
             { $unwind: '$products' },
             {

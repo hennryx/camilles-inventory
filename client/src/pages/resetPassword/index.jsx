@@ -53,16 +53,20 @@ const ResetPassword = () => {
         
         try {
             setIsLoading(true);
+            console.log(token);
+            
             
             const response = await axios.post(`${ENDPOINT}/auth/reset-password/${token}`, { password });
             
-            toast.success('Password reset successful');
-            setMessage('Your password has been reset successfully. You can now log in with your new password.');
-            
-            // Redirect to login after 3 seconds
-            setTimeout(() => {
-                navigate('/');
-            }, 3000);
+            if(response.success) {
+                toast.success('Password reset successful');
+                setMessage('Your password has been reset successfully. You can now log in with your new password.');
+                setTimeout(() => {
+                    navigate('/');
+                }, 3000);
+            }else {
+                toast.error(response.message)
+            }
             
         } catch (error) {
             setIsValid(false);
@@ -73,7 +77,6 @@ const ResetPassword = () => {
         }
     };
 
-    // If token is invalid, display error message
     if (!isValid) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

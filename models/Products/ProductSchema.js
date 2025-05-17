@@ -32,6 +32,12 @@ const ProductsSchema = new mongoose.Schema({
 
 	category: {
 		type: String,
+	},
+	
+	status: {
+		type: String,
+		enum: ['active', 'inactive'],
+		default: 'active'
 	}
 }, {
 	timestamps: true

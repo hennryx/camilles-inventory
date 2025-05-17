@@ -30,7 +30,7 @@ function App() {
     return (
         <>
             <Routes>
-                <Route path="/reset-password/:id" element={<ResetPassword />} />
+                <Route path="/reset-password/:token" element={<ResetPassword />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 {heroPaths.includes(urlPath) 
                 ? <Route path='/*' element={<HeroPage />} /> 
