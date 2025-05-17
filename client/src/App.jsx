@@ -3,7 +3,6 @@ import { Routes, Route } from 'react-router-dom';
 
 import './App.css'
 import useAuthStore from './services/stores/authStore';
-import NotFound from './pages/notFound';
 import HeroPage from './pages/home';
 import Views from './pages/views';
 import ResetPassword from './pages/resetPassword';
@@ -24,13 +23,11 @@ function App() {
         '/forgot-password',
         '/reset-password' 
     ];
-    
+
     const isHeroPath = heroPaths.some(path => 
         location.pathname === path || 
         (path === '/reset-password' && location.pathname.startsWith('/reset-password/'))
     );
-
-    const urlPath = location.pathname;
 
     return (
         <>
@@ -38,7 +35,6 @@ function App() {
                 <Route path="/reset-password/:token" element={<ResetPassword />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/" element={<HeroPage />} />
-                <Route path="/about-us" element={<HeroPage />} />
                 <Route path="*" element={isHeroPath ? <HeroPage /> : <Views />} />
             </Routes>
         </>
