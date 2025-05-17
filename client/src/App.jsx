@@ -22,8 +22,13 @@ function App() {
         '/',
         '/about-us',
         '/forgot-password',
-        '/reset-password/:token'
+        '/reset-password' 
     ];
+    
+    const isHeroPath = heroPaths.some(path => 
+        location.pathname === path || 
+        (path === '/reset-password' && location.pathname.startsWith('/reset-password/'))
+    );
 
     const urlPath = location.pathname;
 
@@ -32,11 +37,9 @@ function App() {
             <Routes>
                 <Route path="/reset-password/:token" element={<ResetPassword />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
-                {heroPaths.includes(urlPath) 
-                ? <Route path='/*' element={<HeroPage />} /> 
-                : <Route path='/*' element={<Views />} />
-                }
-                <Route path='*' element={<NotFound />} />
+                <Route path="/" element={<HeroPage />} />
+                <Route path="/about-us" element={<HeroPage />} />
+                <Route path="*" element={isHeroPath ? <HeroPage /> : <Views />} />
             </Routes>
         </>
     )

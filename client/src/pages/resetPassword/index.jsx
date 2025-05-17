@@ -58,14 +58,16 @@ const ResetPassword = () => {
             
             const response = await axios.post(`${ENDPOINT}/auth/reset-password/${token}`, { password });
             
-            if(response.success) {
+            console.log(response);
+            
+            if(response.data.success) {
                 toast.success('Password reset successful');
                 setMessage('Your password has been reset successfully. You can now log in with your new password.');
                 setTimeout(() => {
                     navigate('/');
                 }, 3000);
             }else {
-                toast.error(response.message)
+                toast.error(response.data.message)
             }
             
         } catch (error) {
